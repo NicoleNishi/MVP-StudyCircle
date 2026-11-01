@@ -1,8 +1,7 @@
-// A grade semanal vai de 08h a 22h; os horários são guardados em minutos desde 00:00.
 export const INICIO_GRADE = 8 * 60;
 export const FIM_GRADE = 22 * 60;
-export const ALTURA_HORA = 32; // px por hora na grade
-export const PASSO = 30; // minutos entre uma opção e outra no modal
+export const ALTURA_HORA = 32;
+export const PASSO = 30;
 
 export const hhmm = (m) =>
   `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;

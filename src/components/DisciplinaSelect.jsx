@@ -8,7 +8,6 @@ const Lupa = ({ tamanho = 14 }) => (
   </svg>
 );
 
-/** Campo de disciplinas: só aceita nomes da lista oficial, escolhidos nas sugestões. */
 export default function DisciplinaSelect({ value, onChange, erro }) {
   const [texto, setTexto] = useState("");
   const [aberto, setAberto] = useState(false);
@@ -112,7 +111,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
                 role="option"
                 aria-selected={i === ativo}
                 onMouseDown={(e) => {
-                  e.preventDefault(); // não tira o foco do campo
+                  e.preventDefault();
                   escolher(o.nome);
                 }}
               >

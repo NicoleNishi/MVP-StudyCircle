@@ -8,7 +8,6 @@ for (let m = INICIO_GRADE; m <= FIM_GRADE; m += PASSO) OPCOES_HORA.push(m);
 
 const ordem = (id) => DIAS.findIndex((d) => d.id === id);
 
-/** Modal para registrar dia(s) da semana + horário. Só altera a grade ao confirmar. */
 export default function AvailabilityModal({ slots, onConfirmar, onCancelar }) {
   const ref = useRef(null);
   const [rascunho, setRascunho] = useState(() => slots.map((s) => ({ ...s })));
@@ -30,7 +29,7 @@ export default function AvailabilityModal({ slots, onConfirmar, onCancelar }) {
       return setErro(`Já existe um horário em ${nome} que cruza com esse período.`);
     }
     setRascunho([...rascunho, ...dias.map((dia) => ({ dia, ini, fim }))]);
-    setDias([]); // limpa a seleção de dias depois de adicionar
+    setDias([]);
     setErro("");
   }
 

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Cores */
+  --color-creme: #f5f4ee;       /* fundo das telas */
+  --color-floresta: #174d3b;    /* verde principal: botões, textos de destaque */
+  --color-musgo: #236b50;       /* verde secundário: círculos, avatares */
+  --color-lima: #c9da57;        /* verde-limão: afinidade, botões secundários */
+  --color-lima-suave: #cedf92;  /* verde-limão claro dos círculos */
+  --color-menta: #cdeedd;       /* menta dos círculos e avatares */
+  --color-chip: #d9e9df;        /* fundo das tags (matérias, horários) */
+  --color-borda: #e4e4e4;       /* bordas de campos e divisórias */
+  --color-apagado: #9b9b9b;     /* placeholders e textos secundários */
+  --color-erro: #b3361f;        /* mensagens de validação */
+
+  /* Arredondamentos */
+  --radius-campo: 10px;   /* inputs */
+  --radius-tag: 20px;     /* cards de match */
+  --radius-cartao: 30px;  /* cards de Login e Cadastro */
+  --radius-pilula: 60px;  /* botões */
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply min-h-screen bg-creme font-sans text-black antialiased;
+  }
+}

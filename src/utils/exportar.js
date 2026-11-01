@@ -1,9 +1,7 @@
 import { DIAS } from "../constants";
 import { hhmm } from "./time";
 
-/**
- * Monta o objeto que será salvo em JSON e lido pelo algoritmo de matching.
- *
+/*Monta o objeto que será salvo em JSON e lido pelo algoritmo de matching.
  * {
  *   versao: 1,
  *   enviadoEm: "2026-10-30T20:18:41.000Z",

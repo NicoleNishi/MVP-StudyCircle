@@ -1,4 +1,4 @@
-// Lista oficial de disciplinas (fonte: PDF nome_das_matérias).
+// Lista oficial de disciplinas da EACH.
 // Para incluir ou renomear uma disciplina, edite apenas este arquivo.
 export const DISCIPLINAS = [
   "Análise de Redes Sociais",

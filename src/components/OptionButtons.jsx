@@ -1,4 +1,3 @@
-/** Grupo de botões de opção. `selecionado(id)` diz se está marcado; `onAlternar(id)` trata o clique. */
 export default function OptionButtons({ opcoes, selecionado, onAlternar, className = "opts", rotulo }) {
   return (
     <div className={className} role="group" aria-label={rotulo}>

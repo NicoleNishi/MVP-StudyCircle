@@ -1,9 +1,8 @@
 import { DIAS } from "../constants";
 import { ALTURA_HORA, INICIO_GRADE, curto } from "../utils/time";
 
-const HORAS = Array.from({ length: 14 }, (_, i) => 8 + i); // 08h … 21h
+const HORAS = Array.from({ length: 14 }, (_, i) => 8 + i);
 
-/** Grade semanal só de visualização; clicar nela abre o modal de edição. */
 export default function AvailabilityGrid({ slots, onAbrir }) {
   return (
     <div

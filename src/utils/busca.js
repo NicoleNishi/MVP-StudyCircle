@@ -1,6 +1,5 @@
 import { DISCIPLINAS } from "../data/disciplinas";
 
-// Tira acentos letra a letra (mantém o tamanho do texto), usa minúsculas e troca símbolos por espaço.
 const limpar = (s) =>
   [...s].map((c) => c.normalize("NFD")[0]).join("").toLowerCase().replace(/[^a-z0-9]/g, " ");
 
@@ -15,7 +14,6 @@ const INDICE = DISCIPLINAS.map((nome) => {
 
 const tokens = (q) => limpar(q).split(/\s+/).filter(Boolean);
 
-// Divide o nome em trechos para destacar em negrito o que casa com a busca.
 function segmentos(d, toks) {
   const marcado = new Array(d.nome.length).fill(false);
   toks.forEach((t) =>
@@ -36,7 +34,6 @@ function segmentos(d, toks) {
   return trechos;
 }
 
-/** Busca disciplinas da lista oficial. Aceita variações como "calculo 2" = "Cálculo II". */
 export function buscar(consulta, jaEscolhidas = []) {
   const toks = tokens(consulta);
   return INDICE.filter(
