@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { buscar } from "../utils/busca";
+import { buscar } from "../utils/buscaDisciplina";
 
 const Lupa = ({ tamanho = 14, className = "" }) => (
   <svg

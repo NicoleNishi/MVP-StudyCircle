@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FOCOS, GRUPOS, SEMESTRES } from "../constants";
 import AvailabilityGrid from "../components/AvailabilityGrid";
 import AvailabilityModal from "../components/AvailabilityModal";
+import CursoSelect from "../components/CursoSelect";
 import DisciplinaSelect from "../components/DisciplinaSelect";
 import OptionButtons from "../components/OptionButtons";
 import BotaoVoltar from "../components/layout/BotaoVoltar";
@@ -36,6 +37,7 @@ const Obrigatorio = () => (
 export default function Perfil() {
   const navigate = useNavigate();
   const [nome, setNome] = useState("");
+  const [cursos, setCursos] = useState([])
   const [disciplinas, setDisciplinas] = useState([]);
   const [slots, setSlots] = useState([]);
   const [focos, setFocos] = useState([]);
@@ -58,6 +60,7 @@ export default function Perfil() {
     e.preventDefault();
     const novos = {};
     if (nome.trim().length < 2) novos.nome = "Informe seu nome.";
+    if (!cursos.length) novos.cursos = "Adicione pelo menos um curso.";
     if (!disciplinas.length) novos.disciplinas = "Adicione pelo menos uma disciplina.";
     if (!slots.length) novos.slots = "Adicione pelo menos um horário disponível.";
     if (!focos.length) novos.focos = "Escolha pelo menos um foco para os encontros.";
@@ -66,7 +69,7 @@ export default function Perfil() {
 
     try {
       const resultado = await salvarPerfil(
-        montarPerfil({ nome, disciplinas, slots, focos, usarPref, grupo, semestre }),
+        montarPerfil({ nome, cursos, disciplinas, slots, focos, usarPref, grupo, semestre }),
       );
       navigate("/pessoas", {
         state: { aviso: resultado?.baixado ? "Perfil baixado! Envie o arquivo para a equipe." : "Perfil salvo!" },
@@ -122,6 +125,17 @@ export default function Perfil() {
                   }}
                 />
                 {erros.nome && <p className={estilo.erro}>{erros.nome}</p>}
+              </section>
+
+              <section className={estilo.secao}>
+                <CursoSelect
+                  value={cursos}
+                  erro={erros.cursos}
+                  onChange={(v) => {
+                    setCursos(v);
+                    limpaErro("cursos");
+                  }}
+                />
               </section>
 
               <section className={estilo.secao}>

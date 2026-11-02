@@ -44,19 +44,19 @@ export default function Pessoas() {
     <div className="relative isolate min-h-screen">
       <CirculosDecorativos variante="pessoas" />
 
-      <header className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 pt-6 sm:px-8 lg:px-[47px] lg:pt-10">
+      <header className="mx-auto flex w-full max-w-360 flex-wrap items-center justify-between gap-3 px-4 pt-6 sm:px-8 lg:px-11.75 lg:pt-10">
         <Logo para="/pessoas" />
 
         <nav aria-label="Ações da conta" className="relative flex items-center gap-2 sm:gap-5">
           <Link
             to="/mapa"
-            className="hidden h-[45px] items-center rounded-pilula border-2 border-floresta px-6 text-lg font-semibold text-floresta transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta sm:flex"
+            className="hidden h-11.25 items-center rounded-pilula border-2 border-floresta px-6 text-lg font-semibold text-floresta transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta sm:flex"
           >
             Locais de estudo
           </Link>
           <Link
             to="/perfil"
-            className="flex h-[45px] items-center rounded-pilula border border-black bg-floresta px-4 text-base font-semibold text-white sm:px-6 transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta sm:w-[200px] sm:justify-center sm:text-xl"
+            className="flex h-11.25 items-center rounded-pilula border border-black bg-floresta px-4 text-base font-semibold text-white sm:px-6 transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta sm:w-50 sm:justify-center sm:text-xl"
           >
             Editar Perfil
           </Link>
@@ -66,9 +66,9 @@ export default function Pessoas() {
             aria-expanded={notificacoesAbertas}
             aria-controls="painel-notificacoes"
             onClick={() => setNotificacoesAbertas((v) => !v)}
-            className="grid size-[50px] shrink-0 place-items-center rounded-full bg-lima transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
+            className="grid size-12.5 shrink-0 place-items-center rounded-full bg-lima transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
           >
-            <img src={iconeSino} alt="" className="size-[34px]" />
+            <img src={iconeSino} alt="" className="size-8.5" />
           </button>
           {notificacoesAbertas && (
             <div
@@ -83,7 +83,7 @@ export default function Pessoas() {
         </nav>
       </header>
 
-      <div className="mx-auto grid w-full max-w-[1440px] gap-8 px-4 pb-12 pt-8 sm:px-8 lg:grid-cols-[325px_1fr] lg:items-start lg:px-[47px] lg:pt-10">
+      <div className="mx-auto grid w-full max-w-360 gap-8 px-4 pb-12 pt-8 sm:px-8 lg:grid-cols-[325px_1fr] lg:items-start lg:px-11.75 lg:pt-10">
         <aside
           aria-labelledby="titulo-filtros"
           className="rounded-tag bg-white px-6 pb-7 pt-7 shadow-[0_1px_3px_#0000000d]"
