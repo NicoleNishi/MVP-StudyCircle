@@ -11,7 +11,27 @@ import Logo from "../components/layout/Logo";
 import { sair } from "../services/auth";
 import { montarPerfil } from "../utils/exportar";
 import { salvarPerfil } from "../utils/salvar";
-import "../styles/perfil.css";
+
+// Classes reutilizadas pelos campos deste formulário (equivalentes ao antigo perfil.css).
+const estilo = {
+  secao: "mb-[18px]",
+  rotulo: "mb-1.5 block text-xs font-semibold text-[#33453c]",
+  subrotulo: "mb-1.5 mt-3 block text-xs font-medium text-[#33453c]",
+  erro: "mt-1.5 text-xs text-[#b3361f]",
+  campo:
+    "w-full rounded-md border border-[#cfd5d0] bg-white px-3 py-2.5 text-[13px] text-[#1d2b24] " +
+    "focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-floresta",
+  botao:
+    "block w-full cursor-pointer rounded-pilula border-0 p-3 text-[13px] font-bold " +
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta",
+};
+
+// Asterisco vermelho dos campos obrigatórios.
+const Obrigatorio = () => (
+  <span className="font-bold text-[#d32f2f]" aria-hidden="true">
+    *
+  </span>
+);
 
 export default function Perfil() {
   const navigate = useNavigate();
@@ -79,18 +99,17 @@ export default function Perfil() {
             Conte-nos o que e quando você precisa estudar para encontrarmos sua dupla ideal.
           </p>
 
+          {/* "perfil-form" ainda é necessário enquanto AvailabilityGrid, AvailabilityModal,
+              DisciplinaSelect e OptionButtons usarem as classes do perfil.css. */}
           <div className="perfil-form">
             <form onSubmit={enviar} noValidate>
-              <section>
-                <label className="lbl" htmlFor="nome">
-                  Seu nome{" "}
-                  <span className="req" aria-hidden="true">
-                    *
-                  </span>
+              <section className={estilo.secao}>
+                <label className={estilo.rotulo} htmlFor="nome">
+                  Seu nome <Obrigatorio />
                 </label>
                 <input
                   id="nome"
-                  className="text"
+                  className={estilo.campo}
                   type="text"
                   value={nome}
                   maxLength={80}
@@ -102,10 +121,10 @@ export default function Perfil() {
                     limpaErro("nome");
                   }}
                 />
-                {erros.nome && <p className="err">{erros.nome}</p>}
+                {erros.nome && <p className={estilo.erro}>{erros.nome}</p>}
               </section>
 
-              <section>
+              <section className={estilo.secao}>
                 <DisciplinaSelect
                   value={disciplinas}
                   erro={erros.disciplinas}
@@ -116,28 +135,26 @@ export default function Perfil() {
                 />
               </section>
 
-              <section>
-                <div className="row">
-                  <span className="lbl">
-                    Sua disponibilidade semanal{" "}
-                    <span className="req" aria-hidden="true">
-                      *
-                    </span>
+              <section className={estilo.secao}>
+                <div className="flex items-baseline justify-between">
+                  <span className={estilo.rotulo}>
+                    Sua disponibilidade semanal <Obrigatorio />
                   </span>
-                  <button type="button" className="link" onClick={() => setModalAberto(true)}>
+                  <button
+                    type="button"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-xs font-semibold text-floresta underline"
+                    onClick={() => setModalAberto(true)}
+                  >
                     Editar horários
                   </button>
                 </div>
                 <AvailabilityGrid slots={slots} onAbrir={() => setModalAberto(true)} />
-                {erros.slots && <p className="err">{erros.slots}</p>}
+                {erros.slots && <p className={estilo.erro}>{erros.slots}</p>}
               </section>
 
-              <section>
-                <span className="lbl">
-                  Foco dos encontros{" "}
-                  <span className="req" aria-hidden="true">
-                    *
-                  </span>
+              <section className={estilo.secao}>
+                <span className={estilo.rotulo}>
+                  Foco dos encontros <Obrigatorio />
                 </span>
                 <OptionButtons
                   rotulo="Foco dos encontros"
@@ -148,24 +165,29 @@ export default function Perfil() {
                     limpaErro("focos");
                   }}
                 />
-                {erros.focos && <p className="err">{erros.focos}</p>}
+                {erros.focos && <p className={estilo.erro}>{erros.focos}</p>}
               </section>
 
-              <section>
-                <label className="switch">
-                  <input type="checkbox" checked={usarPref} onChange={(e) => setUsarPref(e.target.checked)} />
+              <section className={estilo.secao}>
+                <label className="flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold">
+                  <input
+                    type="checkbox"
+                    className="h-[18px] w-[18px] accent-floresta"
+                    checked={usarPref}
+                    onChange={(e) => setUsarPref(e.target.checked)}
+                  />
                   <span>Preferência de integrantes</span>
                 </label>
                 {usarPref && (
                   <div>
-                    <span className="lbl sm">Composição do grupo</span>
+                    <span className={estilo.subrotulo}>Composição do grupo</span>
                     <OptionButtons
                       rotulo="Composição do grupo"
                       opcoes={GRUPOS}
                       selecionado={(id) => grupo === id}
                       onAlternar={setGrupo}
                     />
-                    <span className="lbl sm">Semestre dos integrantes</span>
+                    <span className={estilo.subrotulo}>Semestre dos integrantes</span>
                     <OptionButtons
                       className="opts two"
                       rotulo="Semestre dos integrantes"
@@ -177,10 +199,10 @@ export default function Perfil() {
                 )}
               </section>
 
-              <button type="submit" className="btn primary">
+              <button type="submit" className={`${estilo.botao} bg-floresta text-white hover:bg-[#143527]`}>
                 Salvar e encontrar matches
               </button>
-              <button type="button" className="btn lime" onClick={logout}>
+              <button type="button" className={`${estilo.botao} mt-2.5 bg-[#c8db55] text-[#143527]`} onClick={logout}>
                 Logout
               </button>
             </form>

@@ -1,8 +1,17 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { buscar } from "../utils/busca";
 
-const Lupa = ({ tamanho = 14 }) => (
-  <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+const Lupa = ({ tamanho = 14, className = "" }) => (
+  <svg
+    className={className}
+    width={tamanho}
+    height={tamanho}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
     <circle cx="11" cy="11" r="7" />
     <path d="m20 20-3.5-3.5" />
   </svg>
@@ -57,12 +66,12 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
 
   return (
     <>
-      <label className="lbl" htmlFor="disc-input">
-        Disciplinas deste semestre <span className="req" aria-hidden="true">*</span>
+      <label className="mb-1.5 block text-xs font-semibold text-[#33453c]" htmlFor="disc-input">
+        Disciplinas deste semestre <span className="font-bold text-[#d32f2f]" aria-hidden="true">*</span>
       </label>
-      <div className="combo">
+      <div className="relative">
         <div
-          className="chips-box"
+          className="flex flex-wrap items-center gap-1.5 rounded-md border border-[#cfd5d0] px-2.5 py-1.5 text-[#7b8b83] focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-floresta"
           onMouseDown={(e) => {
             if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
               e.preventDefault();
@@ -72,9 +81,17 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
         >
           <Lupa tamanho={16} />
           {value.map((nome) => (
-            <span className="chip" key={nome}>
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-[#d6ebdd] py-0.5 pl-2.5 pr-1 text-[11px] font-medium text-[#143527]"
+              key={nome}
+            >
               {nome}
-              <button type="button" aria-label={`Remover ${nome}`} onClick={() => onChange(value.filter((d) => d !== nome))}>
+              <button
+                type="button"
+                className="cursor-pointer border-0 bg-transparent px-1 text-sm leading-none text-inherit"
+                aria-label={`Remover ${nome}`}
+                onClick={() => onChange(value.filter((d) => d !== nome))}
+              >
                 ×
               </button>
             </span>
@@ -84,6 +101,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
             ref={inputRef}
             value={texto}
             placeholder="Busque e selecione na lista"
+            className="min-w-[140px] flex-1 border-0 bg-transparent py-1 text-xs text-[#1d2b24] outline-none"
             autoComplete="off"
             role="combobox"
             aria-expanded={aberto}
@@ -102,29 +120,40 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
           />
         </div>
         {aberto && (
-          <ul className="sug" id={listaId} role="listbox">
-            {opcoes.length === 0 && <li className="none">Nenhuma disciplina encontrada na lista.</li>}
+          <ul
+            className="absolute inset-x-0 top-[calc(100%+4px)] z-10 m-0 max-h-[264px] list-none overflow-auto rounded-[10px] border border-[#d9ddd8] bg-white p-1.5 shadow-[0_8px_24px_#0002]"
+            id={listaId}
+            role="listbox"
+          >
+            {opcoes.length === 0 && (
+              <li className="cursor-default px-2.5 py-2 text-[13px] text-[#6c8478]">
+                Nenhuma disciplina encontrada na lista.
+              </li>
+            )}
             {opcoes.map((o, i) => (
               <li
                 key={o.nome}
                 id={`${listaId}-${i}`}
                 role="option"
                 aria-selected={i === ativo}
+                className={`flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] text-[#1d2b24] hover:bg-[#eaf4ee] ${
+                  i === ativo ? "bg-[#eaf4ee]" : ""
+                }`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   escolher(o.nome);
                 }}
               >
-                <Lupa />
+                <Lupa className="flex-none text-[#7b8b83]" />
                 <span>
-                  {o.trechos.map((t, k) => (t.negrito ? <b key={k}>{t.texto}</b> : <span key={k}>{t.texto}</span>))}
+                  {o.trechos.map((t, k) => (t.negrito ? <b className="font-bold" key={k}>{t.texto}</b> : <span key={k}>{t.texto}</span>))}
                 </span>
               </li>
             ))}
           </ul>
         )}
       </div>
-      {mensagem && <p className="err">{mensagem}</p>}
+      {mensagem && <p className="mt-1.5 text-xs text-[#b3361f]">{mensagem}</p>}
     </>
   );
 }
