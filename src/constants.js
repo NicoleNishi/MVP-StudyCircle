@@ -31,9 +31,16 @@ export const GRUPOS = [
   { id: "somente_homens_trans", label: "Só homens trans" },
 ];
 
+// Preferência: estudar com pessoas de outros cursos ou só do mesmo curso.
+export const CURSOS_PREFERENCIA = [
+  { id: "outros", label: "Aceito outros cursos" },
+  { id: "mesmo", label: "Só do meu curso" },
+];
+
 export const SEMESTRES = [
   { id: "outros", label: "Aceito outros semestres" },
   { id: "mesmo", label: "Só do meu semestre" },
 ];
 
+// Semestre em que o aluno está (escolha única), de 1º a 10º.
 export const SEMESTRES_ALUNO = Array.from({ length: 10 }, (_, i) => ({ id: i + 1, label: `${i + 1}º` }));

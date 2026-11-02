@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FOCOS, GENEROS, GRUPOS, SEMESTRES, SEMESTRES_ALUNO } from "../constants";
+import { CURSOS_PREFERENCIA, FOCOS, GENEROS, GRUPOS, SEMESTRES, SEMESTRES_ALUNO } from "../constants";
 import AvailabilityGrid from "../components/AvailabilityGrid";
 import AvailabilityModal from "../components/AvailabilityModal";
 import CursoSelect from "../components/CursoSelect";
@@ -45,6 +45,7 @@ export default function Perfil() {
   const [focos, setFocos] = useState([]);
   const [grupo, setGrupo] = useState("misto"); // preferência: composição do grupo
   const [preferenciaSemestre, setPreferenciaSemestre] = useState("outros"); // preferência: semestre dos integrantes
+  const [preferenciaCurso, setPreferenciaCurso] = useState("outros"); // preferência: curso dos integrantes
   const [erros, setErros] = useState({});
   const [modalAberto, setModalAberto] = useState(false);
   const [aviso, setAviso] = useState("");
@@ -82,6 +83,7 @@ export default function Perfil() {
           focos,
           grupo,
           preferenciaSemestre,
+          preferenciaCurso,
         }),
       );
       navigate("/pessoas", {
@@ -226,7 +228,7 @@ export default function Perfil() {
               {erros.focos && <p className={estilo.erro}>{erros.focos}</p>}
             </section>
 
-            {/* Preferência de integrantes: sempre visível, já vem com "Misto" e "Aceito outros semestres". */}
+            {/* Preferência de integrantes: sempre visível, já vem com "Misto", "Aceito outros semestres" e "Aceito outros cursos". */}
             <section className={estilo.secao}>
               <span className={estilo.rotulo}>Preferência de integrantes</span>
 
@@ -245,6 +247,15 @@ export default function Perfil() {
                 opcoes={SEMESTRES}
                 selecionado={(id) => preferenciaSemestre === id}
                 onAlternar={setPreferenciaSemestre}
+              />
+
+              <span className={estilo.subrotulo}>Curso dos integrantes</span>
+              <OptionButtons
+                layout="dois"
+                rotulo="Curso dos integrantes"
+                opcoes={CURSOS_PREFERENCIA}
+                selecionado={(id) => preferenciaCurso === id}
+                onAlternar={setPreferenciaCurso}
               />
             </section>
 
