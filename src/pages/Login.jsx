@@ -88,7 +88,7 @@ export default function Login() {
           />
         </div>
 
-        <label className="mt-2.5 flex w-fit cursor-pointer items-center gap-1.5 text-[15px] font-medium leading-[18px] text-black">
+        <label className="mt-2.5 flex w-fit cursor-pointer items-center gap-1.5 text-[15px] font-medium leading-4.5 text-black">
           <input
             type="checkbox"
             checked={lembrar}
@@ -107,12 +107,12 @@ export default function Login() {
                 type="button"
                 disabled={enviando}
                 onClick={() => entrarCom(p.id)}
-                className="group flex w-[62px] flex-col items-center gap-3 rounded-tag focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-floresta disabled:opacity-60"
+                className="group flex w-15.5 flex-col items-center gap-3 rounded-tag focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-floresta disabled:opacity-60"
               >
-                <span className="grid size-[45px] place-items-center rounded-pilula bg-floresta transition group-hover:bg-musgo">
-                  <img src={ICONES[p.id]} alt="" className="size-[25px]" />
+                <span className="grid size-11.25 place-items-center rounded-pilula bg-floresta transition group-hover:bg-musgo">
+                  <img src={ICONES[p.id]} alt="" className="size-6.25" />
                 </span>
-                <span className="text-[15px] font-medium leading-[18px] text-black">{p.nome}</span>
+                <span className="text-[15px] font-medium leading-4.5 text-black">{p.nome}</span>
               </button>
             ))}
           </div>
@@ -127,12 +127,12 @@ export default function Login() {
         <button
           type="submit"
           disabled={enviando}
-          className="mt-8 h-[49px] w-full rounded-pilula bg-floresta text-xl font-bold leading-6 text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta disabled:cursor-wait disabled:opacity-70"
+          className="mt-8 h-12.25 w-full rounded-pilula bg-floresta text-xl font-bold leading-6 text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta disabled:cursor-wait disabled:opacity-70"
         >
           {enviando ? "Entrando..." : "Entrar"}
         </button>
 
-        <p className="mt-4 text-center text-[15px] font-medium leading-[18px] text-black">
+        <p className="mt-4 text-center text-[15px] font-medium leading-4.5 text-black">
           Não tem conta ainda?{" "}
           <Link to="/cadastro" className="text-floresta underline-offset-2 hover:underline">
             Cadastre-se

@@ -31,7 +31,7 @@ export default function Mapa() {
           title="Heatmap de qualidade da conexão na EACH"
           onLoad={() => setCarregado(true)}
           allow="fullscreen"
-          className="relative min-h-[600px] w-full flex-1 border-0"
+          className="relative min-h-150 w-full flex-1 border-0"
         />
       </main>
 

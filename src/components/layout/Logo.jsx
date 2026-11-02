@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/logo-studycircle.png";
 
 export default function Logo({ para, className = "" }) {
-  const imagem = <img src={logo} alt="studycircle" width={199} height={45} className="h-8 w-auto sm:h-[45px]" />;
+  const imagem = <img src={logo} alt="studycircle" width={199} height={45} className="h-8 w-auto sm:h-11.25" />;
 
   if (!para) return <span className={`inline-flex ${className}`}>{imagem}</span>;
 

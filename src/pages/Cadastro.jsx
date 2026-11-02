@@ -101,12 +101,12 @@ export default function Cadastro() {
         <button
           type="submit"
           disabled={enviando}
-          className="mt-10 h-[49px] w-full rounded-pilula bg-floresta text-xl font-bold leading-6 text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta disabled:cursor-wait disabled:opacity-70"
+          className="mt-10 h-11.25 w-full rounded-pilula bg-floresta text-xl font-bold leading-6 text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta disabled:cursor-wait disabled:opacity-70"
         >
           {enviando ? "Cadastrando..." : "Cadastrar"}
         </button>
 
-        <p className="mt-4 text-center text-[15px] font-medium leading-[18px] text-black">
+        <p className="mt-4 text-center text-[15px] font-medium leading-4.5 text-black">
           Já tem uma conta?{" "}
           <Link to="/" className="text-floresta underline-offset-2 hover:underline">
             Entre
