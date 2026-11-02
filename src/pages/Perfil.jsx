@@ -85,17 +85,17 @@ export default function Perfil() {
     <div className="relative isolate min-h-screen">
       <CirculosDecorativos variante="perfil" />
 
-      <header className="flex items-center justify-between px-4 pt-6 sm:px-7 sm:pt-6 lg:px-[50px]">
+      <header className="flex items-center justify-between px-4 pt-6 sm:px-7 sm:pt-6 lg:px-12.5">
         <BotaoVoltar fallback="/pessoas" />
         <Logo para="/pessoas" />
       </header>
 
       <main className="flex justify-center px-4 pb-10 pt-6 sm:pb-12 lg:-mt-6 lg:pt-0">
-        <div className="w-full max-w-[580px] rounded-campo bg-white px-4 py-7 shadow-[0_1px_3px_#0000001a] sm:px-8">
+        <div className="w-full max-w-145 rounded-campo bg-white px-4 py-7 shadow-[0_1px_3px_#0000001a] sm:px-8">
           <h1 className="text-center text-[28px] font-medium leading-tight text-[#1b2b24] sm:text-[30px]">
             Seu Perfil de Estudos
           </h1>
-          <p className="mx-auto mb-6 mt-2 max-w-[340px] text-center text-sm text-[#6c8478]">
+          <p className="mx-auto mb-6 mt-2 max-w-85 text-center text-sm text-[#6c8478]">
             Conte-nos o que e quando você precisa estudar para encontrarmos sua dupla ideal.
           </p>
 
@@ -172,7 +172,7 @@ export default function Perfil() {
                 <label className="flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold">
                   <input
                     type="checkbox"
-                    className="h-[18px] w-[18px] accent-floresta"
+                    className="h-4.5 w-4.5 accent-floresta"
                     checked={usarPref}
                     onChange={(e) => setUsarPref(e.target.checked)}
                   />

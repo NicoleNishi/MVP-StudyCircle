@@ -34,7 +34,7 @@ export default function AvailabilityGrid({ slots, onAbrir }) {
 
       <div className="grid" style={{ gridTemplateRows: `repeat(${HORAS.length}, ${ALTURA_HORA}px)` }}>
         {HORAS.map((h) => (
-          <span key={h} className="-translate-y-[7px] pr-1 text-right text-[#555]">
+          <span key={h} className="-translate-y-1.75 pr-1 text-right text-[#555]">
             {String(h).padStart(2, "0")}h
           </span>
         ))}
@@ -51,7 +51,7 @@ export default function AvailabilityGrid({ slots, onAbrir }) {
             {doDia.map((s) => (
               <div
                 key={`${s.ini}-${s.fim}`}
-                className="absolute inset-x-[3px] flex flex-col justify-center overflow-hidden rounded bg-floresta px-1 py-[3px] text-center text-[10px] leading-tight text-white"
+                className="absolute inset-x-0.75 flex flex-col justify-center overflow-hidden rounded bg-floresta px-1 py-0.75 text-center text-[10px] leading-tight text-white"
                 style={{
                   top: ((s.ini - INICIO_GRADE) / 60) * ALTURA_HORA,
                   height: ((s.fim - s.ini) / 60) * ALTURA_HORA - 2,

@@ -14,7 +14,7 @@ export const CORES_AVATAR = {
   menta: "bg-menta",
 };
 
-export default function Avatar({ nome, foto, genero = "masculino", cor = "floresta", className = "size-[86px]" }) {
+export default function Avatar({ nome, foto, genero = "masculino", cor = "floresta", className = "size-21.5" }) {
   if (foto) {
     return <img src={foto} alt={`Foto de ${nome}`} className={`shrink-0 rounded-full object-cover ${className}`} />;
   }

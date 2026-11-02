@@ -70,7 +70,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
             foto={destinatario.foto}
             genero={destinatario.genero}
             cor={destinatario.corAvatar}
-            className="size-[70px] sm:size-[86px]"
+            className="size-17.5 sm:size-21.5"
           />
           <h2 id={idTitulo} className="text-[28px] font-medium leading-[1.2] sm:text-[34px]">
             Enviar Convite para {destinatario.nome}
@@ -90,7 +90,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
             setData(e.target.value);
             setErro("");
           }}
-          className={`${CAMPO} mt-1.5 h-[49px]`}
+          className={`${CAMPO} mt-1.5 h-12.25`}
         />
         {erro && (
           <p role="alert" className="mt-1.5 text-[13px] font-medium text-erro">
@@ -108,7 +108,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
           value={mensagem}
           onChange={(e) => setMensagem(e.target.value)}
           placeholder="Digite uma mensagem"
-          className={`${CAMPO} mt-1.5 h-[99px] resize-none py-2.5`}
+          className={`${CAMPO} mt-1.5 h-24.75 resize-none py-2.5`}
         />
 
         <div role="group" aria-label="Objetivo do encontro" className="mt-4 flex flex-wrap gap-2">
@@ -120,7 +120,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
                 type="button"
                 aria-pressed={ativo}
                 onClick={() => alternarObjetivo(o.id)}
-                className={`h-[35px] rounded-tag px-4 text-[15px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta ${
+                className={`h-8.75 rounded-tag px-4 text-[15px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta ${
                   ativo ? "bg-floresta text-white" : "bg-chip text-black hover:brightness-95"
                 }`}
               >
@@ -132,7 +132,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
 
         <button
           type="submit"
-          className="mt-7 h-[55px] w-full rounded-pilula bg-floresta text-[15px] font-bold text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
+          className="mt-7 h-13.75 w-full rounded-pilula bg-floresta text-[15px] font-bold text-white transition hover:bg-musgo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
         >
           Enviar Convite
         </button>
@@ -144,7 +144,7 @@ export default function ConviteModal({ destinatario, onEnviar, onFechar }) {
           id={idLocal}
           value={local}
           onChange={(e) => setLocal(e.target.value)}
-          className="mt-2.5 h-[55px] w-full cursor-pointer appearance-none rounded-pilula bg-lima px-6 text-center text-[15px] font-bold text-floresta transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
+          className="mt-2.5 h-13.75 w-full cursor-pointer appearance-none rounded-pilula bg-lima px-6 text-center text-[15px] font-bold text-floresta transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-floresta"
         >
           <option value="">Escolha o ponto de estudo</option>
           {LOCAIS_ESTUDO.map((l) => (

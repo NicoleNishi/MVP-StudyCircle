@@ -76,21 +76,21 @@ export default function AvailabilityModal({ slots, onConfirmar, onCancelar }) {
             {OPCOES_HORA.slice(1).map((m) => <option key={m} value={m}>{hhmm(m)}</option>)}
           </select>
         </label>
-        <button type="button" className={`${BOTAO} bg-floresta px-[18px] py-[9px] text-white hover:bg-[#143527]`} onClick={adicionar}>
+        <button type="button" className={`${BOTAO} bg-floresta px-4.5 py-2.25 text-white hover:bg-[#143527]`} onClick={adicionar}>
           Adicionar
         </button>
       </div>
 
-      {erro && <p className="mt-1.5 text-xs text-[#b3361f]">{erro}</p>}
+      {erro && <p className="mt-1.5 text-xs text-red">{erro}</p>}
 
-      <ul className="my-3.5 grid max-h-[180px] list-none gap-1.5 overflow-auto p-0">
+      <ul className="my-3.5 grid max-h-45 list-none gap-1.5 overflow-auto p-0">
         {ordenado.length === 0 && <li className="px-2.5 py-1.5 text-xs text-[#6c8478]">Nenhum horário adicionado.</li>}
         {ordenado.map((s) => (
           <li key={`${s.dia}-${s.ini}`} className="flex items-center justify-between rounded-md bg-[#eaf4ee] px-2.5 py-1.5 text-xs">
             <span>{DIAS.find((d) => d.id === s.dia).nome}, {hhmm(s.ini)}–{hhmm(s.fim)}</span>
             <button
               type="button"
-              className="cursor-pointer border-0 bg-transparent text-xs font-semibold text-[#b3361f]"
+              className="cursor-pointer border-0 bg-transparent text-xs font-semibold text-red"
               onClick={() => setRascunho(rascunho.filter((x) => x !== s))}
             >
               Remover
@@ -100,10 +100,10 @@ export default function AvailabilityModal({ slots, onConfirmar, onCancelar }) {
       </ul>
 
       <div className="flex justify-end gap-2">
-        <button type="button" className={`${BOTAO} bg-transparent px-[22px] py-2.5 text-floresta`} onClick={onCancelar}>
+        <button type="button" className={`${BOTAO} bg-transparent px-5.5 py-2.5 text-floresta`} onClick={onCancelar}>
           Cancelar
         </button>
-        <button type="button" className={`${BOTAO} bg-floresta px-[22px] py-2.5 text-white hover:bg-[#143527]`} onClick={() => onConfirmar(rascunho)}>
+        <button type="button" className={`${BOTAO} bg-floresta px-5.5 py-2.5 text-white hover:bg-[#143527]`} onClick={() => onConfirmar(rascunho)}>
           Confirmar
         </button>
       </div>

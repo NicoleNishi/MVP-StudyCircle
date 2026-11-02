@@ -71,7 +71,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
       </label>
       <div className="relative">
         <div
-          className="flex flex-wrap items-center gap-1.5 rounded-md border border-[#cfd5d0] px-2.5 py-1.5 text-[#7b8b83] focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-floresta"
+          className="flex flex-wrap items-center gap-1.5 rounded-md border border-[#cfd5d0] px-2.5 py-1.5 text-[#7b8b83] focus-within:outline focus-within:outline-offset-1 focus-within:outline-floresta"
           onMouseDown={(e) => {
             if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
               e.preventDefault();
@@ -101,7 +101,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
             ref={inputRef}
             value={texto}
             placeholder="Busque e selecione na lista"
-            className="min-w-[140px] flex-1 border-0 bg-transparent py-1 text-xs text-[#1d2b24] outline-none"
+            className="min-w-35 flex-1 border-0 bg-transparent py-1 text-xs text-[#1d2b24] outline-none"
             autoComplete="off"
             role="combobox"
             aria-expanded={aberto}
@@ -121,7 +121,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
         </div>
         {aberto && (
           <ul
-            className="absolute inset-x-0 top-[calc(100%+4px)] z-10 m-0 max-h-[264px] list-none overflow-auto rounded-[10px] border border-[#d9ddd8] bg-white p-1.5 shadow-[0_8px_24px_#0002]"
+            className="absolute inset-x-0 top-[calc(100%+4px)] z-10 m-0 max-h-66 list-none overflow-auto rounded-campo border border-[#d9ddd8] bg-white p-1.5 shadow-[0_8px_24px_#0002]"
             id={listaId}
             role="listbox"
           >
@@ -153,7 +153,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
           </ul>
         )}
       </div>
-      {mensagem && <p className="mt-1.5 text-xs text-[#b3361f]">{mensagem}</p>}
+      {mensagem && <p className="mt-1.5 text-xs text-red">{mensagem}</p>}
     </>
   );
 }
