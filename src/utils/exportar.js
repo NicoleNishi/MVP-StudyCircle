@@ -17,21 +17,23 @@ import { hhmm } from "./time";
  *   }
  * }
  */
-export function montarPerfil({ nome, disciplinas, slots, focos, usarPref, grupo, semestre }) {
+export function montarPerfil({ nome, genero, cursos, semestre, disciplinas, slots, focos, grupo, preferenciaSemestre }) {
   const ordem = (id) => DIAS.findIndex((d) => d.id === id);
   return {
-    versao: 1,
+    versao: 2,
     enviadoEm: new Date().toISOString(),
     nome: nome.trim().replace(/\s+/g, " "),
+    genero,
+    cursos: [...cursos],
+    semestre,
     disciplinas: [...disciplinas],
     disponibilidade: [...slots]
       .sort((a, b) => ordem(a.dia) - ordem(b.dia) || a.ini - b.ini)
       .map((s) => ({ dia: s.dia, inicio: hhmm(s.ini), fim: hhmm(s.fim) })),
     focos: [...focos],
     preferencias: {
-      definida: usarPref,
-      grupo: usarPref ? grupo : "qualquer",
-      aceitaOutroSemestre: usarPref ? semestre === "outros" : true,
+      grupo,
+      aceitaOutroSemestre: preferenciaSemestre === "outros",
     },
   };
 }

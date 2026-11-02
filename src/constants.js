@@ -16,13 +16,24 @@ export const FOCOS = [
   { id: "fazer_revisao", label: "Fazer revisão" },
 ];
 
+export const GENEROS = [
+  { id: "mulher_cis", label: "Mulher cisgênero" },
+  { id: "homem_cis", label: "Homem cisgênero" },
+  { id: "mulher_trans", label: "Mulher trans" },
+  { id: "homem_trans", label: "Homem trans" },
+];
+
 export const GRUPOS = [
   { id: "misto", label: "Misto" },
-  { id: "somente_homens", label: "Só homens" },
-  { id: "somente_mulheres", label: "Só mulheres" },
+  { id: "somente_mulheres_cis", label: "Só mulheres cisgênero" },
+  { id: "somente_homens_cis", label: "Só homens cisgênero" },
+  { id: "somente_mulheres_trans", label: "Só mulheres trans" },
+  { id: "somente_homens_trans", label: "Só homens trans" },
 ];
 
 export const SEMESTRES = [
   { id: "outros", label: "Aceito outros semestres" },
   { id: "mesmo", label: "Só do meu semestre" },
 ];
+
+export const SEMESTRES_ALUNO = Array.from({ length: 10 }, (_, i) => ({ id: i + 1, label: `${i + 1}º` }));

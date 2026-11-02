@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FOCOS, GRUPOS, SEMESTRES } from "../constants";
+import { FOCOS, GENEROS, GRUPOS, SEMESTRES, SEMESTRES_ALUNO } from "../constants";
 import AvailabilityGrid from "../components/AvailabilityGrid";
 import AvailabilityModal from "../components/AvailabilityModal";
 import CursoSelect from "../components/CursoSelect";
@@ -37,13 +37,14 @@ const Obrigatorio = () => (
 export default function Perfil() {
   const navigate = useNavigate();
   const [nome, setNome] = useState("");
-  const [cursos, setCursos] = useState([])
+  const [genero, setGenero] = useState(""); // id de GENEROS (escolha única)
+  const [cursos, setCursos] = useState([]);
+  const [semestre, setSemestre] = useState(null); // semestre do aluno, 1 a 10 (escolha única)
   const [disciplinas, setDisciplinas] = useState([]);
   const [slots, setSlots] = useState([]);
   const [focos, setFocos] = useState([]);
-  const [usarPref, setUsarPref] = useState(false);
-  const [grupo, setGrupo] = useState("misto");
-  const [semestre, setSemestre] = useState("outros");
+  const [grupo, setGrupo] = useState("misto"); // preferência: composição do grupo
+  const [preferenciaSemestre, setPreferenciaSemestre] = useState("outros"); // preferência: semestre dos integrantes
   const [erros, setErros] = useState({});
   const [modalAberto, setModalAberto] = useState(false);
   const [aviso, setAviso] = useState("");
@@ -60,7 +61,9 @@ export default function Perfil() {
     e.preventDefault();
     const novos = {};
     if (nome.trim().length < 2) novos.nome = "Informe seu nome.";
+    if (!genero) novos.genero = "Selecione seu gênero.";
     if (!cursos.length) novos.cursos = "Adicione pelo menos um curso.";
+    if (!semestre) novos.semestre = "Selecione seu semestre.";
     if (!disciplinas.length) novos.disciplinas = "Adicione pelo menos uma disciplina.";
     if (!slots.length) novos.slots = "Adicione pelo menos um horário disponível.";
     if (!focos.length) novos.focos = "Escolha pelo menos um foco para os encontros.";
@@ -69,7 +72,17 @@ export default function Perfil() {
 
     try {
       const resultado = await salvarPerfil(
-        montarPerfil({ nome, cursos, disciplinas, slots, focos, usarPref, grupo, semestre }),
+        montarPerfil({
+          nome,
+          genero,
+          cursos,
+          semestre,
+          disciplinas,
+          slots,
+          focos,
+          grupo,
+          preferenciaSemestre,
+        }),
       );
       navigate("/pessoas", {
         state: { aviso: resultado?.baixado ? "Perfil baixado! Envie o arquivo para a equipe." : "Perfil salvo!" },
@@ -102,137 +115,158 @@ export default function Perfil() {
             Conte-nos o que e quando você precisa estudar para encontrarmos sua dupla ideal.
           </p>
 
-          {/* "perfil-form" ainda é necessário enquanto AvailabilityGrid, AvailabilityModal,
-              DisciplinaSelect e OptionButtons usarem as classes do perfil.css. */}
-          <div className="perfil-form">
-            <form onSubmit={enviar} noValidate>
-              <section className={estilo.secao}>
-                <label className={estilo.rotulo} htmlFor="nome">
-                  Seu nome <Obrigatorio />
-                </label>
-                <input
-                  id="nome"
-                  className={estilo.campo}
-                  type="text"
-                  value={nome}
-                  maxLength={80}
-                  placeholder="Nome e sobrenome"
-                  autoComplete="name"
-                  aria-required="true"
-                  onChange={(e) => {
-                    setNome(e.target.value);
-                    limpaErro("nome");
-                  }}
-                />
-                {erros.nome && <p className={estilo.erro}>{erros.nome}</p>}
-              </section>
-
-              <section className={estilo.secao}>
-                <CursoSelect
-                  value={cursos}
-                  erro={erros.cursos}
-                  onChange={(v) => {
-                    setCursos(v);
-                    limpaErro("cursos");
-                  }}
-                />
-              </section>
-
-              <section className={estilo.secao}>
-                <DisciplinaSelect
-                  value={disciplinas}
-                  erro={erros.disciplinas}
-                  onChange={(v) => {
-                    setDisciplinas(v);
-                    limpaErro("disciplinas");
-                  }}
-                />
-              </section>
-
-              <section className={estilo.secao}>
-                <div className="flex items-baseline justify-between">
-                  <span className={estilo.rotulo}>
-                    Sua disponibilidade semanal <Obrigatorio />
-                  </span>
-                  <button
-                    type="button"
-                    className="cursor-pointer border-0 bg-transparent p-0 text-xs font-semibold text-floresta underline"
-                    onClick={() => setModalAberto(true)}
-                  >
-                    Editar horários
-                  </button>
-                </div>
-                <AvailabilityGrid slots={slots} onAbrir={() => setModalAberto(true)} />
-                {erros.slots && <p className={estilo.erro}>{erros.slots}</p>}
-              </section>
-
-              <section className={estilo.secao}>
-                <span className={estilo.rotulo}>
-                  Foco dos encontros <Obrigatorio />
-                </span>
-                <OptionButtons
-                  rotulo="Foco dos encontros"
-                  opcoes={FOCOS}
-                  selecionado={(id) => focos.includes(id)}
-                  onAlternar={(id) => {
-                    setFocos((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
-                    limpaErro("focos");
-                  }}
-                />
-                {erros.focos && <p className={estilo.erro}>{erros.focos}</p>}
-              </section>
-
-              <section className={estilo.secao}>
-                <label className="flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold">
-                  <input
-                    type="checkbox"
-                    className="h-4.5 w-4.5 accent-floresta"
-                    checked={usarPref}
-                    onChange={(e) => setUsarPref(e.target.checked)}
-                  />
-                  <span>Preferência de integrantes</span>
-                </label>
-                {usarPref && (
-                  <div>
-                    <span className={estilo.subrotulo}>Composição do grupo</span>
-                    <OptionButtons
-                      rotulo="Composição do grupo"
-                      opcoes={GRUPOS}
-                      selecionado={(id) => grupo === id}
-                      onAlternar={setGrupo}
-                    />
-                    <span className={estilo.subrotulo}>Semestre dos integrantes</span>
-                    <OptionButtons
-                      className="opts two"
-                      rotulo="Semestre dos integrantes"
-                      opcoes={SEMESTRES}
-                      selecionado={(id) => semestre === id}
-                      onAlternar={setSemestre}
-                    />
-                  </div>
-                )}
-              </section>
-
-              <button type="submit" className={`${estilo.botao} bg-floresta text-white hover:bg-[#143527]`}>
-                Salvar e encontrar matches
-              </button>
-              <button type="button" className={`${estilo.botao} mt-2.5 bg-[#c8db55] text-[#143527]`} onClick={logout}>
-                Logout
-              </button>
-            </form>
-
-            {modalAberto && (
-              <AvailabilityModal
-                slots={slots}
-                onCancelar={() => setModalAberto(false)}
-                onConfirmar={(novos) => {
-                  setSlots(novos);
-                  limpaErro("slots");
-                  setModalAberto(false);
+          <form onSubmit={enviar} noValidate>
+            <section className={estilo.secao}>
+              <label className={estilo.rotulo} htmlFor="nome">
+                Seu nome <Obrigatorio />
+              </label>
+              <input
+                id="nome"
+                className={estilo.campo}
+                type="text"
+                value={nome}
+                maxLength={80}
+                placeholder="Nome e sobrenome"
+                autoComplete="name"
+                aria-required="true"
+                onChange={(e) => {
+                  setNome(e.target.value);
+                  limpaErro("nome");
                 }}
               />
-            )}
-          </div>
+              {erros.nome && <p className={estilo.erro}>{erros.nome}</p>}
+            </section>
+
+            <section className={estilo.secao}>
+              <span className={estilo.rotulo}>
+                Seu gênero <Obrigatorio />
+              </span>
+              <OptionButtons
+                layout="dois"
+                rotulo="Seu gênero"
+                opcoes={GENEROS}
+                selecionado={(id) => genero === id}
+                onAlternar={(id) => {
+                  setGenero(id);
+                  limpaErro("genero");
+                }}
+              />
+              {erros.genero && <p className={estilo.erro}>{erros.genero}</p>}
+            </section>
+
+            <section className={estilo.secao}>
+              <CursoSelect
+                value={cursos}
+                erro={erros.cursos}
+                onChange={(v) => {
+                  setCursos(v);
+                  limpaErro("cursos");
+                }}
+              />
+            </section>
+
+            <section className={estilo.secao}>
+              <span className={estilo.rotulo}>
+                Seu semestre <Obrigatorio />
+              </span>
+              <OptionButtons
+                layout="dias"
+                rotulo="Seu semestre"
+                opcoes={SEMESTRES_ALUNO}
+                selecionado={(id) => semestre === id}
+                onAlternar={(id) => {
+                  setSemestre(id);
+                  limpaErro("semestre");
+                }}
+              />
+              {erros.semestre && <p className={estilo.erro}>{erros.semestre}</p>}
+            </section>
+
+            <section className={estilo.secao}>
+              <DisciplinaSelect
+                value={disciplinas}
+                erro={erros.disciplinas}
+                onChange={(v) => {
+                  setDisciplinas(v);
+                  limpaErro("disciplinas");
+                }}
+              />
+            </section>
+
+            <section className={estilo.secao}>
+              <div className="flex items-baseline justify-between">
+                <span className={estilo.rotulo}>
+                  Sua disponibilidade semanal <Obrigatorio />
+                </span>
+                <button
+                  type="button"
+                  className="cursor-pointer border-0 bg-transparent p-0 text-xs font-semibold text-floresta underline"
+                  onClick={() => setModalAberto(true)}
+                >
+                  Editar horários
+                </button>
+              </div>
+              <AvailabilityGrid slots={slots} onAbrir={() => setModalAberto(true)} />
+              {erros.slots && <p className={estilo.erro}>{erros.slots}</p>}
+            </section>
+
+            <section className={estilo.secao}>
+              <span className={estilo.rotulo}>
+                Foco dos encontros <Obrigatorio />
+              </span>
+              <OptionButtons
+                rotulo="Foco dos encontros"
+                opcoes={FOCOS}
+                selecionado={(id) => focos.includes(id)}
+                onAlternar={(id) => {
+                  setFocos((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
+                  limpaErro("focos");
+                }}
+              />
+              {erros.focos && <p className={estilo.erro}>{erros.focos}</p>}
+            </section>
+
+            {/* Preferência de integrantes: sempre visível, já vem com "Misto" e "Aceito outros semestres". */}
+            <section className={estilo.secao}>
+              <span className={estilo.rotulo}>Preferência de integrantes</span>
+
+              <span className={estilo.subrotulo}>Composição do grupo</span>
+              <OptionButtons
+                rotulo="Composição do grupo"
+                opcoes={GRUPOS}
+                selecionado={(id) => grupo === id}
+                onAlternar={setGrupo}
+              />
+
+              <span className={estilo.subrotulo}>Semestre dos integrantes</span>
+              <OptionButtons
+                layout="dois"
+                rotulo="Semestre dos integrantes"
+                opcoes={SEMESTRES}
+                selecionado={(id) => preferenciaSemestre === id}
+                onAlternar={setPreferenciaSemestre}
+              />
+            </section>
+
+            <button type="submit" className={`${estilo.botao} bg-floresta text-white hover:bg-[#143527]`}>
+              Salvar e encontrar matches
+            </button>
+            <button type="button" className={`${estilo.botao} mt-2.5 bg-[#c8db55] text-[#143527]`} onClick={logout}>
+              Logout
+            </button>
+          </form>
+
+          {modalAberto && (
+            <AvailabilityModal
+              slots={slots}
+              onCancelar={() => setModalAberto(false)}
+              onConfirmar={(novos) => {
+                setSlots(novos);
+                limpaErro("slots");
+                setModalAberto(false);
+              }}
+            />
+          )}
         </div>
       </main>
 

@@ -17,7 +17,7 @@ const Lupa = ({ tamanho = 14, className = "" }) => (
   </svg>
 );
 
-export default function DisciplinaSelect({ value, onChange, erro }) {
+export default function CursoSelect({ value, onChange, erro }) {
   const [texto, setTexto] = useState("");
   const [aberto, setAberto] = useState(false);
   const [ativo, setAtivo] = useState(-1);
@@ -54,7 +54,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (aberto && ativo >= 0) escolher(opcoes[ativo].nome);
-      else if (texto.trim()) setAviso("Escolha uma disciplina da lista de sugestões.");
+      else if (texto.trim()) setAviso("Escolha um curso da lista de sugestões.");
     } else if (e.key === "Escape") {
       setAberto(false);
     } else if (e.key === "Backspace" && !texto && value.length) {
@@ -66,7 +66,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
 
   return (
     <>
-      <label className="mb-1.5 block text-xs font-semibold text-[#33453c]" htmlFor="disc-input">
+      <label className="mb-1.5 block text-xs font-semibold text-[#33453c]" htmlFor="curso-input">
         Curso <span className="font-bold text-[#d32f2f]" aria-hidden="true">*</span>
       </label>
       <div className="relative">
@@ -97,7 +97,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
             </span>
           ))}
           <input
-            id="disc-input"
+            id="curso-input"
             ref={inputRef}
             value={texto}
             placeholder="Busque e selecione na lista"
@@ -127,7 +127,7 @@ export default function DisciplinaSelect({ value, onChange, erro }) {
           >
             {opcoes.length === 0 && (
               <li className="cursor-default px-2.5 py-2 text-[13px] text-[#6c8478]">
-                Nenhuma disciplina encontrada na lista.
+                Nenhum curso encontrado na lista.
               </li>
             )}
             {opcoes.map((o, i) => (
