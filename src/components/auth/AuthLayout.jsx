@@ -10,10 +10,10 @@ export default function AuthLayout({ titulo, children }) {
         <Logo />
       </header>
 
-      <main className="flex items-center justify-center px-4 py-8 lg:col-start-1 lg:row-start-1 lg:py-[60px]">
+      <main className="flex items-center justify-center px-4 py-8 lg:col-start-1 lg:row-start-1 lg:py-15">
         <section
           aria-labelledby="titulo-entrada"
-          className="w-full max-w-[430px] rounded-cartao bg-white px-5 py-10 shadow-[0_1px_3px_#0000000d] sm:px-[18px] sm:pb-11 sm:pt-10"
+          className="w-full max-w-107.5 rounded-cartao bg-white px-5 py-10 shadow-[0_1px_3px_#0000000d] sm:px-4.5 sm:pb-11 sm:pt-10"
         >
           <h1 id="titulo-entrada" className="mb-6 text-center text-[40px] font-medium leading-[48px] text-black">
             {titulo}
