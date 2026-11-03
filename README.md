@@ -70,3 +70,202 @@ No site publicado não existe o servidor que grava em `perfis-de-estudos/`: ao c
 - `focos`: `ensinar`, `aprender_escutando`, `tirar_duvidas`, `resolver_lista`, `fazer_revisao`
 - `grupo`: `misto`, `somente_homens`, `somente_mulheres` ou `qualquer` (quando o aluno não define preferência)
 - `id`: acrescentado pelo servidor ao salvar; é o nome do arquivo sem `.json`
+
+# Algoritmo de combinação (matching)
+
+O `matching.py` recebe um aluno "alvo", lê os perfis dos demais estudantes, aplica os filtros de compatibilidade, calcula a afinidade de cada combinação e grava um JSON com os resultados que o site deve exibir.
+
+## Requisitos
+
+- Python 3.8 ou superior (`python --version`; no Windows, `py --version`).
+- Nenhuma biblioteca externa: o script usa só a biblioteca padrão, então não há `requirements.txt` nem `pip install`.
+
+## Como rodar
+
+Na raiz do projeto (`MVP-StudyCircle`):
+
+```bash
+python matching.py <id-do-aluno-alvo>
+```
+
+Exemplo:
+
+```bash
+python matching.py denilson-santos-de-jesus
+```
+
+Saída esperada no terminal:
+
+```
+1 combinação(ões) gravada(s) em .../src/data/matches-denilson-santos-de-jesus.json
+```
+
+### Argumentos de linha de comando
+
+| Argumento | Obrigatório | Descrição |
+|---|---|---|
+| `aluno_id` | sim | `id` do aluno alvo. |
+| `--raiz CAMINHO` | não | Pasta raiz do projeto. Padrão: a pasta onde está o `matching.py`. |
+| `--min-minutos N` | não | Disponibilidade mínima em comum, em minutos. Sobrescreve o valor padrão. |
+
+Exemplos:
+
+```bash
+# Exigir pelo menos 90 minutos em comum
+python matching.py denilson-santos-de-jesus --min-minutos 90
+
+# Rodar de outra pasta, apontando para a raiz do projeto
+python matching.py denilson-santos-de-jesus --raiz "C:\projetos\MVP-StudyCircle"
+```
+
+Para rodar via `npm`, adicione em `scripts` no `package.json`:
+
+```json
+"matching": "python matching.py"
+```
+
+E use `npm run matching -- denilson-santos-de-jesus`. Se o comando `python` não existir no seu terminal, troque por `py` ou `python3`.
+
+## Formato dos arquivos
+
+### Saída (`src/data/matches-<id>.json`)
+
+Lista ordenada da maior para a menor afinidade (empates em ordem alfabética):
+
+```json
+[
+  {
+    "id": "joaozinho-123",
+    "nome": "Joãozinho",
+    "semestre": 4,
+    "curso": "Sistemas de Informação",
+    "materiasEmComum": ["Algoritmos e Estruturas de Dados I", "Cálculo I"],
+    "horariosEmComum": ["Segunda 14h-16h"],
+    "afinidade": 58,
+    "genero": "homem_cis"
+  }
+]
+```
+
+- `nome` contém apenas o primeiro nome.
+- `horariosEmComum` lista só os intervalos contínuos que atingem o mínimo configurado.
+- Se não houver nenhuma combinação, o arquivo contém `[]`.
+
+## Regras de combinação
+
+Um candidato só aparece na saída se passar por **todos** os filtros abaixo.
+
+**Filtros duros**
+
+1. Ter ao menos uma disciplina em comum com o alvo.
+2. Ter ao menos um intervalo contínuo de disponibilidade em comum com duração igual ou maior que `MIN_MINUTOS_EM_COMUM` (padrão: 60 minutos). Dois blocos de 30 minutos não somam 60.
+
+**Filtros de preferência** (só aplicados quando definidos)
+
+| Preferência | Efeito |
+|---|---|
+| `grupo` = `misto` | Não filtra. |
+| `grupo` = `somente_<grupo>` | Só combina com candidatos do gênero correspondente. |
+| `aceitaOutroSemestre` = `false` | Só combina com candidatos do mesmo semestre. |
+| `aceitaOutroCurso` = `false` | Só combina com candidatos do mesmo curso. |
+
+Com `APLICAR_PREFERENCIAS_DO_CANDIDATO = True`, as preferências do candidato também são checadas em relação ao alvo (combinação mútua). Com `False`, só valem as preferências do alvo.
+
+## Cálculo da afinidade
+
+Cada componente vale de 0 a 1, é multiplicado pelo seu peso, e o total é normalizado para uma porcentagem de 0 a 100:
+
+| Componente | Cálculo | Peso (constante) |
+|---|---|---|
+| Disciplinas | matérias em comum ÷ matérias do alvo | `PESO_DISCIPLINAS` (35) |
+| Minutos em comum | total de minutos em comum ÷ `MINUTOS_PARA_PONTUACAO_MAXIMA` (máx. 1) | `PESO_MINUTOS` (25) |
+| Focos | fração dos focos do alvo com algum foco compatível no candidato | `PESO_FOCOS` (20) |
+| Curso | 1 se compartilham curso, senão 0 | `PESO_CURSO` (10) |
+| Semestre | 1 se for o mesmo semestre, senão 0 | `PESO_SEMESTRE` (10) |
+
+Fórmula: `afinidade = round(100 × Σ(peso × componente) ÷ Σ(pesos))`. Como o resultado é normalizado, só a **proporção** entre os pesos importa: eles não precisam somar 100.
+
+## Parâmetros configuráveis
+
+Todos ficam na seção `CONFIGURAÇÃO` no topo do `matching.py`. Nada fora dela precisa ser alterado.
+
+### Pastas
+
+| Constante | Padrão | Descrição |
+|---|---|---|
+| `PASTA_PERFIS` | `perfis-de-estudos` | Pasta dos perfis, relativa à raiz. |
+| `PASTA_SAIDA` | `src/data` | Pasta de saída, relativa à raiz. |
+
+### Filtros
+
+| Constante | Padrão | Descrição |
+|---|---|---|
+| `MIN_MINUTOS_EM_COMUM` | `60` | Duração mínima (em minutos) de um intervalo em comum. |
+| `APLICAR_PREFERENCIAS_DO_CANDIDATO` | `True` | Liga ou desliga a combinação mútua de preferências. |
+
+O valor de `MIN_MINUTOS_EM_COMUM` pode ser alterado sem editar o código. A ordem de prioridade é:
+
+1. argumento `--min-minutos`;
+2. variável de ambiente `STUDYCIRCLE_MIN_MINUTOS`;
+3. constante `MIN_MINUTOS_EM_COMUM`.
+
+```bash
+# Linux / macOS
+STUDYCIRCLE_MIN_MINUTOS=90 python matching.py denilson-santos-de-jesus
+
+# Windows (PowerShell)
+$env:STUDYCIRCLE_MIN_MINUTOS = 90
+python matching.py denilson-santos-de-jesus
+```
+
+### Pesos da afinidade
+
+| Constante | Padrão |
+|---|---|
+| `PESO_DISCIPLINAS` | `35` |
+| `PESO_MINUTOS` | `25` |
+| `PESO_FOCOS` | `20` |
+| `PESO_CURSO` | `10` |
+| `PESO_SEMESTRE` | `10` |
+| `MINUTOS_PARA_PONTUACAO_MAXIMA` | `240` |
+
+`MINUTOS_PARA_PONTUACAO_MAXIMA` define a partir de quantos minutos em comum o componente de disponibilidade atinge a nota máxima.
+
+### Composição de grupo
+
+| Constante | Descrição |
+|---|---|
+| `GRUPO_PARA_GENERO` | Associa o grupo (`mulheres_cis`, `homens_cis`, `mulheres_trans`, `homens_trans`) ao gênero exigido (`mulher_cis`, `homem_cis`, etc.). |
+| `GRUPOS_MISTOS` | Valores de `grupo` que não filtram nada (`misto`, vazio, ausente). |
+| `PREFIXOS_GRUPO` | Prefixos aceitos antes do nome do grupo (`somente_`, `so_`). |
+
+Se um perfil trouxer um valor de `grupo` que não esteja mapeado, o script **não combina** esse perfil e imprime um aviso no terminal. Para suportar um novo valor, inclua-o em `GRUPO_PARA_GENERO`.
+
+### Compatibilidade de focos
+
+`FOCOS_COMPATIVEIS` é o conjunto de pares de focos compatíveis (a ordem não importa). Qualquer par que não esteja na lista é tratado como incompatível.
+
+| | Ensinar | Aprender escutando | Tirar dúvidas | Resolver lista | Fazer revisão |
+|---|:-:|:-:|:-:|:-:|:-:|
+| **Ensinar** | N | S | S | N | S |
+| **Aprender escutando** | S | N | N | N | S |
+| **Tirar dúvidas** | S | N | N | N | S |
+| **Resolver lista** | N | N | N | S | N |
+| **Fazer revisão** | S | S | S | N | S |
+
+Para alterar uma regra, adicione ou remova o par correspondente em `FOCOS_COMPATIVEIS`.
+
+### Apresentação
+
+| Constante | Descrição |
+|---|---|
+| `NOMES_DIAS` | Como cada dia aparece em `horariosEmComum` (por exemplo, `seg` → `Segunda`). A ordem define a ordenação dos horários. |
+
+## Solução de problemas
+
+| Mensagem ou sintoma | Causa provável |
+|---|---|
+| `Aluno '...' não encontrado` | O `id` não existe em `perfis-de-estudos`. Confira o campo `id` do perfil ou o nome do arquivo. |
+| `[aviso] ignorando <arquivo>` | JSON inválido ou ilegível. Corrija o arquivo. |
+| `[aviso] preferência de grupo desconhecida` | Valor de `grupo` sem mapeamento em `GRUPO_PARA_GENERO`. |
+| Saída com `[]` | Nenhum candidato passou nos filtros. Teste reduzindo `--min-minutos`. |
