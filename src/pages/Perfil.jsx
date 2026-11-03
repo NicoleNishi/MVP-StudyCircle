@@ -11,7 +11,7 @@ import CirculosDecorativos from "../components/layout/CirculosDecorativos";
 import Logo from "../components/layout/Logo";
 import { sair } from "../services/auth";
 import { montarPerfil } from "../utils/exportar";
-import { salvarPerfil } from "../utils/salvar";
+// Removido o import de salvarPerfil local, pois agora salvamos via API no MongoDB
 
 // Classes reutilizadas pelos campos deste formulário (equivalentes ao antigo perfil.css).
 const estilo = {
@@ -72,25 +72,41 @@ export default function Perfil() {
     if (Object.keys(novos).length) return;
 
     try {
-      const resultado = await salvarPerfil(
-        montarPerfil({
-          nome,
-          genero,
-          cursos,
-          semestre,
-          disciplinas,
-          slots,
-          focos,
-          grupo,
-          preferenciaSemestre,
-          preferenciaCurso,
-        }),
-      );
+      // Monta o objeto de perfil utilizando a função utilitária existente do projeto
+      const dadosPerfil = montarPerfil({
+        nome,
+        genero,
+        cursos,
+        semestre,
+        disciplinas,
+        slots,
+        focos,
+        grupo,
+        preferenciaSemestre,
+        preferenciaCurso,
+      });
+
+      // Envia os dados para a API serverless na Vercel que grava no MongoDB Atlas
+      const response = await fetch('/api/salvar-aluno', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dadosPerfil),
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.success) {
+        throw new Error(resultado.error || 'Erro ao salvar no banco de dados');
+      }
+
       navigate("/pessoas", {
-        state: { aviso: resultado?.baixado ? "Perfil baixado! Envie o arquivo para a equipe." : "Perfil salvo!" },
+        state: { aviso: "Perfil salvo com sucesso no MongoDB!" },
       });
     } catch (err) {
-      if (err?.code !== "declined") setAviso("Não foi possível salvar o perfil.");
+      console.error(err);
+      if (err?.code !== "declined") setAviso("Não foi possível salvar o perfil no banco de dados.");
     }
   }
 
