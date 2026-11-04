@@ -1,39 +1,49 @@
 #!/usr/bin/env python3
 """
-StudyCircle - algoritmo de combinação de estudantes.
+StudyCircle - algoritmo de combinação de estudantes
 
-Uso:
-    python matching.py <id-do-aluno-alvo> [--raiz CAMINHO] [--min-minutos N]
+Uso (linha de comando):
+    python matching.py <id-do-aluno-alvo> [--min-minutos N] [--nao-gravar]
 
 Exemplo:
     python matching.py denilson-santos-de-jesus
 
-Lê todos os .json de  <raiz>/perfis-de-estudos
-Grava o resultado em <raiz>/src/data/matches-<id>.json
-(a raiz padrão é a pasta onde este script está, ou seja, MVP-StudyCircle).
+Variáveis de ambiente:
+    MONGODB_URI   (obrigatória)  string de conexão do Atlas (pode vir de um arquivo .env)
+    STUDYCIRCLE_MIN_MINUTOS (opcional) sobrescreve MIN_MINUTOS_EM_COMUM
+
+Lê os perfis da collection  `alunos`
+Grava o resultado na collection `matches` (um documento por aluno, _id = id do aluno).
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import unicodedata
-from pathlib import Path
+from datetime import datetime, timezone
+
+from pymongo import MongoClient
+
+try:  # carrega o arquivo .env em desenvolvimento local (na Vercel as variáveis já existem)
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
 
 # ============================================================================
 # CONFIGURAÇÃO  (altere aqui; nada além desta seção precisa mudar)
 # ============================================================================
 
-# Pastas (relativas à raiz do projeto)
-PASTA_PERFIS = Path("perfis-de-estudos")
-PASTA_SAIDA = Path("src") / "data"
+# --- MongoDB ---------------------------------------------------------------
+NOME_BANCO_PADRAO = "studycircle"
+COLECAO_PERFIS = "alunos"
+COLECAO_MATCHES = "matches"
 
 # --- Filtros duros ---------------------------------------------------------
 # Tempo mínimo (minutos) de um intervalo de disponibilidade em comum.
-# Pode ser sobrescrito sem mexer no código:
-#   - argumento de linha de comando --min-minutos
 MIN_MINUTOS_EM_COMUM = 60
 
 # Se True, as preferências do candidato (grupo/semestre/curso) também são
@@ -52,8 +62,6 @@ PESO_SEMESTRE = 10
 MINUTOS_PARA_PONTUACAO_MAXIMA = 240
 
 # --- Gênero / composição de grupo -----------------------------------------
-# Valor de "preferencias.grupo" -> gênero exigido dos candidatos.
-# "misto" não filtra nada. Aceita variações com/sem prefixo "somente_" ou "so_".
 GRUPO_PARA_GENERO = {
     "mulheres_cis": "mulher_cis",
     "homens_cis": "homem_cis",
@@ -61,11 +69,9 @@ GRUPO_PARA_GENERO = {
     "homens_trans": "homem_trans",
 }
 GRUPOS_MISTOS = {"misto", "", None}
-# Prefixos aceitos antes do nome do grupo (ex.: "somente_homens_trans").
 PREFIXOS_GRUPO = ("somente_", "so_")
 
 # --- Tabela de compatibilidade de focos -----------------------------------
-# Pares compatíveis (a ordem não importa). Tudo que não estiver aqui é "N".
 FOCOS_COMPATIVEIS = {
     frozenset(("ensinar", "aprender_escutando")),
     frozenset(("ensinar", "tirar_duvidas")),
@@ -82,6 +88,50 @@ NOMES_DIAS = {
     "sex": "Sexta", "sab": "Sábado", "dom": "Domingo",
 }
 ORDEM_DIAS = list(NOMES_DIAS)
+
+# ============================================================================
+# MONGODB
+# ============================================================================
+
+# O cliente fica em variável global para ser reaproveitado entre invocações
+# "quentes" de uma função serverless (Vercel) em vez de reconectar toda vez.
+_CLIENTE: MongoClient | None = None
+
+
+def obter_banco():
+    global _CLIENTE
+    uri = os.environ.get("MONGODB_URI")
+    if not uri:
+        raise RuntimeError("Defina a variável de ambiente MONGODB_URI.")
+    if _CLIENTE is None:
+        _CLIENTE = MongoClient(uri, serverSelectionTimeoutMS=5000)
+    return _CLIENTE[NOME_BANCO_PADRAO]
+
+
+def carregar_perfis(db) -> dict[str, dict]:
+    """Lê todos os documentos da collection de perfis, indexados por id."""
+    perfis = {}
+    for doc in db[COLECAO_PERFIS].find({}):
+        _id = doc.pop("_id", None)
+        doc["id"] = str(doc.get("id") or _id)
+        perfis[doc["id"]] = doc
+    return perfis
+
+
+def salvar_matches(db, aluno_id: str, matches: list[dict]) -> None:
+    """Grava (ou substitui) o resultado do aluno na collection de matches."""
+    db[COLECAO_MATCHES].replace_one(
+        {"_id": aluno_id},
+        {
+            "_id": aluno_id,
+            "alunoId": aluno_id,
+            "geradoEm": datetime.now(timezone.utc),
+            "total": len(matches),
+            "matches": matches,
+        },
+        upsert=True,
+    )
+
 
 # ============================================================================
 # FUNÇÕES AUXILIARES
@@ -108,27 +158,8 @@ def minutos_para_texto(total: int) -> str:
 
 
 def primeiro_nome(nome_completo) -> str:
-    """Retorna só o primeiro nome (ex.: 'Denilson Santos de Jesus' -> 'Denilson')."""
     partes = str(nome_completo or "").split()
     return partes[0] if partes else ""
-
-
-def carregar_json(caminho: Path) -> dict:
-    with open(caminho, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def carregar_perfis(pasta: Path) -> dict[str, dict]:
-    """Lê todos os .json da pasta. Arquivos inválidos são ignorados com aviso."""
-    perfis = {}
-    for arq in sorted(pasta.glob("*.json")):
-        try:
-            perfil = carregar_json(arq)
-            perfil.setdefault("id", arq.stem)
-            perfis[perfil["id"]] = perfil
-        except (json.JSONDecodeError, OSError) as e:
-            print(f"[aviso] ignorando {arq.name}: {e}", file=sys.stderr)
-    return perfis
 
 
 # ----------------------------- disponibilidade -----------------------------
@@ -154,10 +185,7 @@ def intervalos_por_dia(perfil: dict) -> dict[str, list[tuple[int, int]]]:
 
 
 def disponibilidade_em_comum(a: dict, b: dict, minimo: int) -> list[tuple[str, int, int]]:
-    """
-    Interseção da disponibilidade. Retorna apenas os intervalos contínuos
-    com duração >= `minimo`, como (dia, inicio_min, fim_min).
-    """
+    """Interseção da disponibilidade, só intervalos contínuos >= `minimo`."""
     da, db = intervalos_por_dia(a), intervalos_por_dia(b)
     comuns = []
     for dia in da.keys() & db.keys():
@@ -187,7 +215,6 @@ def genero_permitido(preferencia_grupo, genero_candidato) -> bool:
         return True
     exigido = GRUPO_PARA_GENERO.get(pref)
     if exigido is None:
-        # Preferência de grupo desconhecida: por segurança, não combina.
         if preferencia_grupo not in _AVISADOS:
             _AVISADOS.add(preferencia_grupo)
             print(f"[aviso] preferência de grupo desconhecida: {preferencia_grupo!r}; "
@@ -257,13 +284,11 @@ def combinar(alvo: dict, candidatos: list[dict], min_minutos: int) -> list[dict]
         if outro["id"] == alvo["id"]:
             continue
 
-        # Filtros de preferência
         if not passa_preferencias(alvo, outro):
             continue
         if APLICAR_PREFERENCIAS_DO_CANDIDATO and not passa_preferencias(outro, alvo):
             continue
 
-        # Filtros duros
         materias = disciplinas_em_comum(alvo, outro)
         if not materias:
             continue
@@ -291,38 +316,47 @@ def combinar(alvo: dict, candidatos: list[dict], min_minutos: int) -> list[dict]
     return resultado
 
 
-def resolver_min_minutos(arg_cli: int | None) -> int:
+def resolver_min_minutos(arg_cli: int | None = None) -> int:
     if arg_cli is not None:
         return arg_cli
     env = os.environ.get("STUDYCIRCLE_MIN_MINUTOS")
     return int(env) if env else MIN_MINUTOS_EM_COMUM
 
 
+def gerar_matches(aluno_id: str, min_minutos: int | None = None,
+                  gravar: bool = True, db=None) -> list[dict] | None:
+    """
+    Ponto de entrada reutilizável (CLI, função serverless, rota de API...).
+    Retorna a lista de matches, ou None se o aluno não existir.
+    """
+    db = db if db is not None else obter_banco()
+    perfis = carregar_perfis(db)
+    if aluno_id not in perfis:
+        return None
+    matches = combinar(perfis[aluno_id], list(perfis.values()),
+                       resolver_min_minutos(min_minutos))
+    if gravar:
+        salvar_matches(db, aluno_id, matches)
+    return matches
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Gera os matches de estudo de um aluno.")
-    ap.add_argument("aluno_id", help="id do aluno alvo (nome do arquivo sem .json)")
-    ap.add_argument("--raiz", type=Path, default=Path(__file__).resolve().parent,
-                    help="pasta raiz do projeto (MVP-StudyCircle)")
+    ap = argparse.ArgumentParser(description="Gera os matches de estudo de um aluno (MongoDB).")
+    ap.add_argument("aluno_id", help="id do aluno alvo")
     ap.add_argument("--min-minutos", type=int, default=None,
                     help=f"disponibilidade mínima em comum (padrão {MIN_MINUTOS_EM_COMUM})")
+    ap.add_argument("--nao-gravar", action="store_true",
+                    help="não grava no Mongo; só calcula e mostra o total")
     args = ap.parse_args()
 
-    perfis = carregar_perfis(args.raiz / PASTA_PERFIS)
-    if args.aluno_id not in perfis:
-        print(f"Aluno '{args.aluno_id}' não encontrado em {args.raiz / PASTA_PERFIS}",
+    matches = gerar_matches(args.aluno_id, args.min_minutos, gravar=not args.nao_gravar)
+    if matches is None:
+        print(f"Aluno '{args.aluno_id}' não encontrado na collection '{COLECAO_PERFIS}'",
               file=sys.stderr)
         return 1
 
-    matches = combinar(perfis[args.aluno_id], list(perfis.values()),
-                       resolver_min_minutos(args.min_minutos))
-
-    pasta_saida = args.raiz / PASTA_SAIDA
-    pasta_saida.mkdir(parents=True, exist_ok=True)
-    destino = pasta_saida / f"matches-{args.aluno_id}.json"
-    with open(destino, "w", encoding="utf-8") as f:
-        json.dump(matches, f, ensure_ascii=False, indent=2)
-
-    print(f"{len(matches)} combinação(ões) gravada(s) em {destino}")
+    destino = "(não gravado)" if args.nao_gravar else f"collection '{COLECAO_MATCHES}'"
+    print(f"{len(matches)} combinação(ões) {destino}")
     return 0
 
 
