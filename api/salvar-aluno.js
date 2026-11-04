@@ -13,6 +13,18 @@ async function connectToDatabase() {
   return client;
 }
 
+// Função slug idêntica à que usavam antes para gerar o id amigável baseado no nome
+const slug = (s) =>
+  s
+    ? s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60)
+    : "perfil";
+
 export default async function handler(req, res) {
   // Garante que só aceita requisições POST
   if (req.method !== 'POST') {
@@ -21,22 +33,25 @@ export default async function handler(req, res) {
 
   try {
     const client = await connectToDatabase();
-    const db = client.db('estudos_db'); // Nome do seu banco de dados no Atlas
-    const collection = db.collection('alunos'); // Nome da tabela/coleção
+    const db = client.db('estudos_db'); 
+    const collection = db.collection('alunos'); 
 
-    // O JSON enviado pelo formulário do React vem em req.body
     const dadosAluno = req.body;
 
-    // Salva o JSON no MongoDB
+    // Gera o id amigável com base no nome do aluno (igual faziam antes)
+    const idAmigavel = slug(dadosAluno.nome);
+
+    // Salva o JSON no MongoDB incluindo o campo "id" limpo e legível
     const resultado = await collection.insertOne({
       ...dadosAluno,
+      id: idAmigavel, // Adiciona o id formatado que o algoritmo espera
       createdAt: new Date()
     });
 
     return res.status(200).json({ 
       success: true, 
       message: 'Dados salvos com sucesso no MongoDB!',
-      id: resultado.insertedId 
+      id: idAmigavel 
     });
 
   } catch (error) {
