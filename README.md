@@ -55,14 +55,46 @@ No site publicado não existe o servidor que grava em `perfis-de-estudos/`: ao c
 
 ```json
 {
-  "versao": 1,
-  "enviadoEm": "2026-10-30T21:41:06.972Z",
-  "nome": "Maria da Silva",
-  "disciplinas": ["Cálculo II"],
-  "disponibilidade": [{ "dia": "ter", "inicio": "14:00", "fim": "16:00" }],
-  "focos": ["resolver_lista"],
-  "preferencias": { "definida": true, "grupo": "misto", "aceitaOutroSemestre": true },
-  "id": "maria-da-silva"
+  _id: ObjectId('6aeb19e331025321cd2111c2'),
+  versao: NumberInt('2'),
+  enviadoEm: '2026-11-04T11:41:21.140Z',
+  nome: 'Laura Gimenez',
+  genero: 'mulher_cis',
+  cursos: [
+    'Educação Física e Saúde'
+  ],
+  semestre: NumberInt('2'),
+  disciplinas: [
+    'Análise, Projeto e Interface Humano-Computador'
+  ],
+  disponibilidade: [
+    {
+      dia: 'ter',
+      inicio: '14:00',
+      fim: '16:00'
+    },
+    {
+      dia: 'qua',
+      inicio: '14:00',
+      fim: '16:00'
+    },
+    {
+      dia: 'qui',
+      inicio: '14:00',
+      fim: '16:00'
+    }
+  ],
+  focos: [
+    'aprender_escutando',
+    'tirar_duvidas'
+  ],
+  preferencias: {
+    grupo: 'misto',
+    aceitaOutroSemestre: true,
+    aceitaOutroCurso: true
+  },
+  id: 'laura-gimenez',
+  createdAt: ISODate('2026-11-04T11:41:23.519Z')
 }
 ```
 
