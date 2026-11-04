@@ -41,16 +41,6 @@ npm run preview  # testa a versão final localmente
 - `src/utils/`: busca de disciplinas, formato do JSON, envio ao servidor, validações
 - `server/perfis.js`: grava os arquivos na pasta `perfis-de-estudos/`
 
-## Publicar na Vercel
-
-1. Quem é dono do repositório no GitHub entra em vercel.com com a conta do GitHub (plano Hobby, gratuito).
-2. **Add New → Project**, escolhe o repositório e clica em **Deploy**. A Vercel detecta o Vite sozinha (build `npm run build`, pasta `dist`).
-3. A cada `git push` na branch principal o site é atualizado.
-
-O `vercel.json` faz todas as rotas (`/pessoas`, `/mapa`...) abrirem o `index.html`, para que recarregar a página não dê 404.
-
-No site publicado não existe o servidor que grava em `perfis-de-estudos/`: ao clicar em **Salvar e encontrar matches**, o perfil é **baixado** como `<nome-do-aluno>.json`, no mesmo formato, para ser enviado à equipe e colocado na pasta manualmente.
-
 ## Formato do JSON
 
 ```json
