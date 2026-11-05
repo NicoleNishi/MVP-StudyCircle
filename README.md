@@ -1,106 +1,114 @@
 # studycircle
 
-Formulário em React (Vite) em que o aluno informa nome, disciplinas, disponibilidade semanal, foco dos encontros e preferência de integrantes. Ao clicar em **Salvar e encontrar matches**, o perfil é salvo em `perfis-de-estudos/<nome-do-aluno>.json`, pasta lida pelo algoritmo de matching.
+Site em React (Vite + Tailwind) que conecta estudantes da EACH USP em grupos de estudo. O aluno preenche o perfil (curso, semestre, disciplinas, horários, foco e preferências), o perfil é salvo no MongoDB Atlas e o algoritmo de combinação (`matching.py`) calcula as pessoas compatíveis, exibidas na tela de Pessoas.
+
+## Como funciona
+
+```
+Formulário (/perfil)
+  └─ POST /api/salvar-aluno  (api/salvar-aluno.js)  → grava/atualiza o aluno na collection `alunos`
+Tela de Pessoas (/pessoas)
+  └─ GET /api/matches?id=…   (api/matches.py)       → roda o matching.py, grava em `matches` e devolve a lista
+```
+
+- O `id` do aluno é o nome em formato slug (`Maria da Silva` → `maria-da-silva`). Enviar o formulário de novo com o mesmo nome **atualiza** o perfil.
+- Enquanto não há login de verdade, o site guarda no navegador o `id` de quem salvou o perfil (`src/utils/sessao.js`) para saber de quem mostrar os matches. O Logout apaga essa informação.
+- O algoritmo roda de novo toda vez que a tela de Pessoas abre, então novos perfis aparecem sem nenhum passo manual. Ele também pode ser rodado pelo terminal (veja abaixo).
+
+## Variáveis de ambiente
+
+| Variável | Obrigatória | Descrição |
+| --- | --- | --- |
+| `MONGODB_URI` | sim | String de conexão do MongoDB Atlas. |
+| `MONGODB_DB` | não | Nome do banco. Padrão: `estudos_db`. A API e o `matching.py` usam o mesmo valor. |
+
+- **Na Vercel:** Settings → Environment Variables (marcar Production e Preview) e fazer **Redeploy**.
+- **No computador:** num arquivo `.env.local` (para o `vercel dev`) e/ou `.env` (para rodar o `matching.py` pelo terminal). Os dois estão no `.gitignore`: nunca suba a senha do banco para o GitHub.
+- **No MongoDB Atlas:** em Network Access, libere `0.0.0.0/0`. As funções da Vercel não têm IP fixo.
 
 ## Como rodar
 
 ```bash
 npm install
-npm run dev      # servidor de desenvolvimento (http://localhost:5173)
-npm run build    # gera a versão final na pasta dist
-npm run preview  # testa a versão final localmente
+npm i -g vercel        # uma vez só
+vercel dev             # site + funções da pasta api/ (http://localhost:3000)
 ```
 
-> O salvamento na pasta funciona com `npm run dev` e `npm run preview`, porque quem grava o arquivo é o servidor do Vite (`server/perfis.js`). Em um site publicado será preciso um backend que receba `POST /api/perfis`.
+> `npm run dev` roda **só o site**: as rotas `/api/*` não existem nele, então salvar o perfil e ver os matches não funcionam. Para testar o fluxo completo no computador, use `vercel dev`.
 
-## Perfis salvos
+```bash
+npm run build    # gera a versão final na pasta dist
+```
 
-- Um arquivo por aluno, nomeado a partir do nome (`Maria da Silva` → `maria-da-silva.json`).
-- Enviar o formulário de novo com o mesmo nome **atualiza** o arquivo daquela pessoa.
-- A pasta está no `.gitignore` porque contém nomes de alunos. Remova a linha se quiser versionar os perfis.
+## Publicar na Vercel
 
-## Rotas (react-router-dom)
+A Vercel publica sozinha a cada `git push` na branch principal. O `vercel.json` faz todas as rotas do site (`/pessoas`, `/mapa`...) abrirem o `index.html`, exceto `/api/*`. As dependências do Node vêm do `package.json` (`mongodb`) e as do Python do `requirements.txt` (`pymongo`).
+
+## Rotas do site (react-router-dom)
 
 | Rota | Página |
 | --- | --- |
-| `/` | Login |
-| `/cadastro` | Cadastro |
+| `/` | Login (ainda simulado) |
+| `/cadastro` | Cadastro (ainda simulado) |
 | `/perfil` | Formulário de perfil de estudos |
-| `/pessoas` | Matches (cards de afinidade + filtros) |
-| `/mapa` | Locais de estudo (área reservada para o heatmap da EACH) |
+| `/pessoas` | Matches calculados pelo algoritmo + filtros + convite |
+| `/mapa` | Heatmap de conexão da EACH (app do Streamlit embutido) |
 
 ## Estrutura
 
+- `api/salvar-aluno.js`: grava ou atualiza o perfil no MongoDB
+- `api/matches.py`: roda o `matching.py` para um aluno e devolve os matches
+- `matching.py`: algoritmo de combinação (também roda pelo terminal)
 - `src/App.jsx`: mapa de rotas
 - `src/index.css`: Tailwind CSS v4 + tokens do Figma no bloco `@theme` (cores, raios, fonte Inter)
-- `src/pages/`: uma página por rota (`Perfil.jsx` contém o estado, a validação e o envio do formulário)
-- `src/components/`: `MatchCard`, `Avatar`, componentes do formulário de perfil e as pastas `layout/`, `ui/`, `auth/`, `mapa/`
-- `src/styles/perfil.css`: estilos internos do formulário de perfil, escopados em `.perfil-form`
-- `src/services/auth.js`: ponto de integração com a autenticação (hoje simulado)
-- `src/data/`: disciplinas, faculdades, matches e locais de estudo de exemplo
-- `src/utils/`: busca de disciplinas, formato do JSON, envio ao servidor, validações
-- `server/perfis.js`: grava os arquivos na pasta `perfis-de-estudos/`
+- `src/pages/`: uma página por rota
+- `src/components/`: `MatchCard`, `ConviteModal`, `Avatar`, componentes do formulário e as pastas `layout/`, `ui/`, `auth/`
+- `src/services/api.js`: chamadas às rotas `/api/*`; `src/services/auth.js`: login simulado
+- `src/data/`: listas de cursos, disciplinas, faculdades e locais de estudo
+- `src/utils/`: busca de cursos e disciplinas, formato do JSON (`exportar.js`), sessão do aluno, preparo dos matches para a tela, validações
 
-## Formato do JSON
+## Formato do perfil (collection `alunos`)
 
 ```json
 {
-  _id: ObjectId('6aeb19e331025321cd2111c2'),
-  versao: NumberInt('2'),
-  enviadoEm: '2026-11-04T11:41:21.140Z',
-  nome: 'Laura Gimenez',
-  genero: 'mulher_cis',
-  cursos: [
-    'Educação Física e Saúde'
+  "versao": 2,
+  "enviadoEm": "2026-11-04T11:41:21.140Z",
+  "nome": "Laura Gimenez",
+  "genero": "mulher_cis",
+  "cursos": ["Educação Física e Saúde"],
+  "semestre": 2,
+  "disciplinas": ["Análise, Projeto e Interface Humano-Computador"],
+  "disponibilidade": [
+    { "dia": "ter", "inicio": "14:00", "fim": "16:00" },
+    { "dia": "qua", "inicio": "14:00", "fim": "16:00" }
   ],
-  semestre: NumberInt('2'),
-  disciplinas: [
-    'Análise, Projeto e Interface Humano-Computador'
-  ],
-  disponibilidade: [
-    {
-      dia: 'ter',
-      inicio: '14:00',
-      fim: '16:00'
-    },
-    {
-      dia: 'qua',
-      inicio: '14:00',
-      fim: '16:00'
-    },
-    {
-      dia: 'qui',
-      inicio: '14:00',
-      fim: '16:00'
-    }
-  ],
-  focos: [
-    'aprender_escutando',
-    'tirar_duvidas'
-  ],
-  preferencias: {
-    grupo: 'misto',
-    aceitaOutroSemestre: true,
-    aceitaOutroCurso: true
+  "focos": ["aprender_escutando", "tirar_duvidas"],
+  "preferencias": {
+    "grupo": "misto",
+    "aceitaOutroSemestre": true,
+    "aceitaOutroCurso": true
   },
-  id: 'laura-gimenez',
-  createdAt: ISODate('2026-11-04T11:41:23.519Z')
+  "id": "laura-gimenez",
+  "createdAt": "2026-11-04T11:41:23.519Z",
+  "updatedAt": "2026-11-04T11:41:23.519Z"
 }
 ```
 
+- `genero`: `mulher_cis`, `homem_cis`, `mulher_trans`, `homem_trans`
 - `dia`: `seg`, `ter`, `qua`, `qui`, `sex`, `sab`, `dom`
 - `focos`: `ensinar`, `aprender_escutando`, `tirar_duvidas`, `resolver_lista`, `fazer_revisao`
-- `grupo`: `misto`, `somente_homens`, `somente_mulheres` ou `qualquer` (quando o aluno não define preferência)
-- `id`: acrescentado pelo servidor ao salvar; é o nome do arquivo sem `.json`
+- `grupo`: `misto`, `somente_mulheres_cis`, `somente_homens_cis`, `somente_mulheres_trans`, `somente_homens_trans`
+- `id`, `createdAt` e `updatedAt` são acrescentados pela API ao salvar (no banco as datas ficam como `Date`).
 
 # Algoritmo de combinação (matching)
 
-O `matching.py` recebe um aluno "alvo", lê os perfis dos demais estudantes, aplica os filtros de compatibilidade, calcula a afinidade de cada combinação e grava um JSON com os resultados que o site deve exibir.
+O `matching.py` recebe um aluno "alvo", lê os perfis dos demais estudantes na collection `alunos`, aplica os filtros de compatibilidade, calcula a afinidade de cada combinação e grava o resultado na collection `matches` (um documento por aluno, com `_id` = id do aluno). No site, quem chama o algoritmo é a função `api/matches.py`; pelo terminal ele roda do mesmo jeito.
 
 ## Requisitos
 
 - Python 3.8 ou superior (`python --version`; no Windows, `py --version`).
-- Nenhuma biblioteca externa: o script usa só a biblioteca padrão, então não há `requirements.txt` nem `pip install`.
+- Dependências do `requirements.txt` (`pymongo` e `python-dotenv`): `pip install -r requirements.txt`.
+- A variável `MONGODB_URI` (e, se usar outro banco, `MONGODB_DB`) num arquivo `.env` na raiz do projeto.
 
 ## Como rodar
 
@@ -116,28 +124,32 @@ Exemplo:
 python matching.py denilson-santos-de-jesus
 ```
 
+Para comparar o perfil salvo mais recentemente com os demais:
+
+```bash
+python matching.py --ultimo
+```
+
 Saída esperada no terminal:
 
 ```
-1 combinação(ões) gravada(s) em .../src/data/matches-denilson-santos-de-jesus.json
+1 combinação(ões) collection 'matches'
 ```
 
 ### Argumentos de linha de comando
 
 | Argumento | Obrigatório | Descrição |
 |---|---|---|
-| `aluno_id` | sim | `id` do aluno alvo. |
-| `--raiz CAMINHO` | não | Pasta raiz do projeto. Padrão: a pasta onde está o `matching.py`. |
+| `aluno_id` | sim, se não usar `--ultimo` | `id` do aluno alvo. |
+| `--ultimo` | não | Usa como alvo o perfil salvo mais recentemente. |
 | `--min-minutos N` | não | Disponibilidade mínima em comum, em minutos. Sobrescreve o valor padrão. |
+| `--nao-gravar` | não | Só calcula e mostra o total, sem gravar em `matches`. |
 
 Exemplos:
 
 ```bash
 # Exigir pelo menos 90 minutos em comum
 python matching.py denilson-santos-de-jesus --min-minutos 90
-
-# Rodar de outra pasta, apontando para a raiz do projeto
-python matching.py denilson-santos-de-jesus --raiz "C:\projetos\MVP-StudyCircle"
 ```
 
 Para rodar via `npm`, adicione em `scripts` no `package.json`:
@@ -148,11 +160,9 @@ Para rodar via `npm`, adicione em `scripts` no `package.json`:
 
 E use `npm run matching -- denilson-santos-de-jesus`. Se o comando `python` não existir no seu terminal, troque por `py` ou `python3`.
 
-## Formato dos arquivos
+## Formato do resultado
 
-### Saída (`src/data/matches-<id>.json`)
-
-Lista ordenada da maior para a menor afinidade (empates em ordem alfabética):
+O documento gravado em `matches` (e a resposta de `GET /api/matches?id=…`) traz a lista `matches`, ordenada da maior para a menor afinidade (empates em ordem alfabética):
 
 ```json
 [
@@ -171,7 +181,7 @@ Lista ordenada da maior para a menor afinidade (empates em ordem alfabética):
 
 - `nome` contém apenas o primeiro nome.
 - `horariosEmComum` lista só os intervalos contínuos que atingem o mínimo configurado.
-- Se não houver nenhuma combinação, o arquivo contém `[]`.
+- Se não houver nenhuma combinação, a lista vem vazia (`[]`).
 
 ## Regras de combinação
 
@@ -211,12 +221,15 @@ Fórmula: `afinidade = round(100 × Σ(peso × componente) ÷ Σ(pesos))`. Como 
 
 Todos ficam na seção `CONFIGURAÇÃO` no topo do `matching.py`. Nada fora dela precisa ser alterado.
 
-### Pastas
+### Banco de dados
 
 | Constante | Padrão | Descrição |
 |---|---|---|
-| `PASTA_PERFIS` | `perfis-de-estudos` | Pasta dos perfis, relativa à raiz. |
-| `PASTA_SAIDA` | `src/data` | Pasta de saída, relativa à raiz. |
+| `NOME_BANCO_PADRAO` | `MONGODB_DB` ou `estudos_db` | Banco onde estão as collections. |
+| `COLECAO_PERFIS` | `alunos` | Perfis salvos pelo site. |
+| `COLECAO_MATCHES` | `matches` | Resultados do algoritmo. |
+
+Se o mesmo aluno aparecer mais de uma vez em `alunos` (envios antigos repetidos), o algoritmo usa o perfil mais recente.
 
 ### Filtros
 
@@ -287,7 +300,8 @@ Para alterar uma regra, adicione ou remova o par correspondente em `FOCOS_COMPAT
 
 | Mensagem ou sintoma | Causa provável |
 |---|---|
-| `Aluno '...' não encontrado` | O `id` não existe em `perfis-de-estudos`. Confira o campo `id` do perfil ou o nome do arquivo. |
-| `[aviso] ignorando <arquivo>` | JSON inválido ou ilegível. Corrija o arquivo. |
+| `Aluno '...' não encontrado` | O `id` não existe na collection `alunos` do banco configurado. Confira o campo `id` e se `MONGODB_DB` aponta para o mesmo banco do site. |
+| `Defina a variável de ambiente MONGODB_URI` | Falta o `.env` na raiz (terminal) ou a variável na Vercel. |
+| Timeout ao conectar | O IP não está liberado em Network Access no Atlas. |
 | `[aviso] preferência de grupo desconhecida` | Valor de `grupo` sem mapeamento em `GRUPO_PARA_GENERO`. |
-| Saída com `[]` | Nenhum candidato passou nos filtros. Teste reduzindo `--min-minutos`. |
+| Lista de matches vazia | Nenhum candidato passou nos filtros. Teste reduzindo `--min-minutos`. |

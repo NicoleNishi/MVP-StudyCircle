@@ -10,8 +10,9 @@ import BotaoVoltar from "../components/layout/BotaoVoltar";
 import CirculosDecorativos from "../components/layout/CirculosDecorativos";
 import Logo from "../components/layout/Logo";
 import { sair } from "../services/auth";
+import { salvarPerfil } from "../services/api";
 import { montarPerfil } from "../utils/exportar";
-// Removido o import de salvarPerfil local, pois agora salvamos via API no MongoDB
+import { esquecerAlunoAtual, guardarAlunoAtual } from "../utils/sessao";
 
 // Classes reutilizadas pelos campos deste formulário (equivalentes ao antigo perfil.css).
 const estilo = {
@@ -49,6 +50,7 @@ export default function Perfil() {
   const [erros, setErros] = useState({});
   const [modalAberto, setModalAberto] = useState(false);
   const [aviso, setAviso] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     if (!aviso) return;
@@ -71,6 +73,7 @@ export default function Perfil() {
     setErros(novos);
     if (Object.keys(novos).length) return;
 
+    setEnviando(true);
     try {
       // Monta o objeto de perfil utilizando a função utilitária existente do projeto
       const dadosPerfil = montarPerfil({
@@ -86,32 +89,21 @@ export default function Perfil() {
         preferenciaCurso,
       });
 
-      // Envia os dados para a API serverless na Vercel que grava no MongoDB Atlas
-      const response = await fetch('/api/salvar-aluno', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dadosPerfil),
-      });
+      const id = await salvarPerfil(dadosPerfil);
+      guardarAlunoAtual({ id, nome: dadosPerfil.nome });
 
-      const resultado = await response.json();
-
-      if (!response.ok || !resultado.success) {
-        throw new Error(resultado.error || 'Erro ao salvar no banco de dados');
-      }
-
-      navigate("/pessoas", {
-        state: { aviso: "Perfil salvo com sucesso no MongoDB!" },
-      });
+      navigate("/pessoas", { state: { aviso: "Perfil salvo!" } });
     } catch (err) {
       console.error(err);
-      if (err?.code !== "declined") setAviso("Não foi possível salvar o perfil no banco de dados.");
+      setAviso(err?.message || "Não foi possível salvar o perfil.");
+    } finally {
+      setEnviando(false);
     }
   }
 
   async function logout() {
     await sair();
+    esquecerAlunoAtual();
     navigate("/", { replace: true });
   }
 
@@ -275,8 +267,12 @@ export default function Perfil() {
               />
             </section>
 
-            <button type="submit" className={`${estilo.botao} bg-floresta text-white hover:bg-[#143527]`}>
-              Salvar e encontrar matches
+            <button
+              type="submit"
+              disabled={enviando}
+              className={`${estilo.botao} bg-floresta text-white hover:bg-[#143527] disabled:cursor-wait disabled:opacity-70`}
+            >
+              {enviando ? "Salvando..." : "Salvar e encontrar matches"}
             </button>
             <button type="button" className={`${estilo.botao} mt-2.5 bg-[#c8db55] text-[#143527]`} onClick={logout}>
               Logout

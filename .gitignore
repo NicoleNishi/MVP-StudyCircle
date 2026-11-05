@@ -4,3 +4,10 @@ dist
 .env.*
 *.log
 .DS_Store
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Vercel CLI
+.vercel

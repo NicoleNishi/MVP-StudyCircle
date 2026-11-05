@@ -50,7 +50,7 @@ export default function MatchCard({
 
         <div className="min-w-0 flex-1">
           <h2 id={idTitulo} className="text-lg font-medium leading-6 text-black sm:text-xl">
-            {nome}, {semestre}º Semestre
+            {nome}, <span className="whitespace-nowrap">{semestre}º Semestre</span>
           </h2>
           {curso && <p className="mt-1 text-[15px] font-medium leading-4.5 text-apagado">{curso}</p>}
         </div>

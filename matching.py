@@ -4,12 +4,14 @@ StudyCircle - algoritmo de combinação de estudantes
 
 Uso (linha de comando):
     python matching.py <id-do-aluno-alvo> [--min-minutos N] [--nao-gravar]
+    python matching.py --ultimo            # usa o perfil salvo mais recentemente
 
 Exemplo:
     python matching.py denilson-santos-de-jesus
 
 Variáveis de ambiente:
     MONGODB_URI   (obrigatória)  string de conexão do Atlas (pode vir de um arquivo .env)
+    MONGODB_DB    (opcional)     nome do banco; o padrão é o mesmo usado por api/salvar-aluno.js
     STUDYCIRCLE_MIN_MINUTOS (opcional) sobrescreve MIN_MINUTOS_EM_COMUM
 
 Lê os perfis da collection  `alunos`
@@ -38,7 +40,7 @@ except ImportError:
 # ============================================================================
 
 # --- MongoDB ---------------------------------------------------------------
-NOME_BANCO_PADRAO = "studycircle"
+NOME_BANCO_PADRAO = os.environ.get("MONGODB_DB") or "estudos_db"  # mesmo banco do api/salvar-aluno.js
 COLECAO_PERFIS = "alunos"
 COLECAO_MATCHES = "matches"
 
@@ -108,14 +110,31 @@ def obter_banco():
     return _CLIENTE[NOME_BANCO_PADRAO]
 
 
+def _momento(doc: dict) -> str:
+    for campo in ("updatedAt", "createdAt", "enviadoEm"):
+        valor = doc.get(campo)
+        if valor:
+            return valor.isoformat() if isinstance(valor, datetime) else str(valor)
+    return ""
+
+
 def carregar_perfis(db) -> dict[str, dict]:
-    """Lê todos os documentos da collection de perfis, indexados por id."""
+    """Lê os perfis indexados por id; se o aluno aparecer repetido, vale o mais recente."""
     perfis = {}
     for doc in db[COLECAO_PERFIS].find({}):
         _id = doc.pop("_id", None)
         doc["id"] = str(doc.get("id") or _id)
-        perfis[doc["id"]] = doc
+        atual = perfis.get(doc["id"])
+        if atual is None or _momento(doc) >= _momento(atual):
+            perfis[doc["id"]] = doc
     return perfis
+
+
+def id_do_ultimo_perfil(db) -> str | None:
+    perfis = carregar_perfis(db)
+    if not perfis:
+        return None
+    return max(perfis.values(), key=_momento)["id"]
 
 
 def salvar_matches(db, aluno_id: str, matches: list[dict]) -> None:
@@ -342,16 +361,28 @@ def gerar_matches(aluno_id: str, min_minutos: int | None = None,
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Gera os matches de estudo de um aluno (MongoDB).")
-    ap.add_argument("aluno_id", help="id do aluno alvo")
+    ap.add_argument("aluno_id", nargs="?", help="id do aluno alvo")
+    ap.add_argument("--ultimo", action="store_true",
+                    help="usa o perfil salvo mais recentemente como aluno alvo")
     ap.add_argument("--min-minutos", type=int, default=None,
                     help=f"disponibilidade mínima em comum (padrão {MIN_MINUTOS_EM_COMUM})")
     ap.add_argument("--nao-gravar", action="store_true",
                     help="não grava no Mongo; só calcula e mostra o total")
     args = ap.parse_args()
 
-    matches = gerar_matches(args.aluno_id, args.min_minutos, gravar=not args.nao_gravar)
+    aluno_id = args.aluno_id
+    if args.ultimo:
+        aluno_id = id_do_ultimo_perfil(obter_banco())
+        if aluno_id is None:
+            print(f"Nenhum perfil na collection '{COLECAO_PERFIS}'", file=sys.stderr)
+            return 1
+        print(f"Último perfil salvo: {aluno_id}")
+    elif not aluno_id:
+        ap.error("informe o id do aluno ou use --ultimo")
+
+    matches = gerar_matches(aluno_id, args.min_minutos, gravar=not args.nao_gravar)
     if matches is None:
-        print(f"Aluno '{args.aluno_id}' não encontrado na collection '{COLECAO_PERFIS}'",
+        print(f"Aluno '{aluno_id}' não encontrado na collection '{COLECAO_PERFIS}'",
               file=sys.stderr)
         return 1
 
